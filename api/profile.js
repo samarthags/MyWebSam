@@ -2,8 +2,10 @@ import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
 
+// Initialize Firebase Admin SDK
 function initFirebase() {
   if (admin.apps.length) return;
+
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   let privateKey = process.env.FIREBASE_PRIVATE_KEY || "";
@@ -15,6 +17,7 @@ function initFirebase() {
   });
 }
 
+// Escape HTML to prevent XSS
 function escapeHtml(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -24,11 +27,13 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#39;");
 }
 
+// Shorten text for summaries
 function textSummary(str = "", max = 160) {
   const clean = str.replace(/\s+/g, " ").trim();
   return clean.length > max ? clean.slice(0, max - 1) + "…" : clean;
 }
 
+// Build absolute URL
 function absoluteUrl(req, path = "") {
   const base =
     process.env.SITE_BASE_URL ||
@@ -41,9 +46,11 @@ export default async function handler(req, res) {
     initFirebase();
     const db = admin.firestore();
 
+    // Get username from query
     const usernameRaw = (req.query.username || "").toString().trim().toLowerCase();
     if (!usernameRaw) return res.status(400).send("Missing username");
 
+    // Fetch profile from Firestore
     const snap = await db
       .collection("profiles")
       .where("username", "==", usernameRaw)
@@ -54,6 +61,7 @@ export default async function handler(req, res) {
 
     const profile = snap.docs[0].data();
 
+    // Prepare fields
     const name = profile.name || usernameRaw;
     const bio = textSummary(profile.bio || "Profile on MyPortfolio");
     const image = profile.imageUrl || "https://via.placeholder.com/1200x630.png?text=MyPortfolio";
@@ -61,6 +69,7 @@ export default async function handler(req, res) {
     const birthday = profile.birthday || "";
     const pageUrl = absoluteUrl(req, `/${usernameRaw}`);
 
+    // Social links array for schema.org
     const sameAs = [];
     const add = (cond, url) => cond && sameAs.push(url);
 
@@ -86,26 +95,24 @@ export default async function handler(req, res) {
       ...(birthday ? { birthDate: new Date(birthday).toISOString().slice(0, 10) } : {}),
     };
 
-    // Read the HTML template
+    // Read profile.html template
     const templatePath = path.join(process.cwd(), "public", "profile.html");
     let html = fs.readFileSync(templatePath, "utf-8");
 
-    // Replace placeholders
+    // Replace placeholders in HTML
     html = html
       .replace(/{{NAME}}/g, escapeHtml(name))
       .replace(/{{BIO}}/g, escapeHtml(bio))
       .replace(/{{IMAGE}}/g, escapeHtml(image))
       .replace(/{{PAGE_URL}}/g, pageUrl)
-      .replace(
-        /{{LOCATION_HTML}}/g,
-        loc ? `<p class="meta"><strong>Location:</strong> ${escapeHtml(loc)}</p>` : ""
-      )
+      .replace(/{{LOCATION_HTML}}/g, loc ? `<p class="meta"><strong>Location:</strong> ${escapeHtml(loc)}</p>` : "")
       .replace(
         /{{BIRTHDAY_HTML}}/g,
         birthday ? `<p class="meta"><strong>Birthday:</strong> ${escapeHtml(new Date(birthday).toDateString())}</p>` : ""
       )
       .replace(/{{JSON_LD}}/g, JSON.stringify(jsonLd));
 
+    // Send HTML
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
     res.status(200).send(html);
