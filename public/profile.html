@@ -1399,11 +1399,12 @@ body.light-theme {
 </head>
 <body class="dark-theme">
     <!--=============== LOADING ===============-->
-    <div class="loading" id="loading">
-        <i class='bx bx-loader-alt bx-spin'></i> Loading...
+    <div class="loading" id="loading" style="display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--body-color, #0a0a0a); z-index: 9999; justify-content: center; align-items: center; color: var(--text-color, #fff);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class='bx bx-loader-alt bx-spin' style="font-size: 2rem;"></i>
+            <span>Loading...</span>
+        </div>
     </div>
-
-   
 
     <!--=============== INTRO PAGE ===============-->
     <div class="intro-container" id="intro-container" style="display:none;">
@@ -1441,7 +1442,7 @@ body.light-theme {
     </div>
 
     <!--=============== HEADER ===============-->
-    <header class="header" id="header">
+    <header class="header" id="header" style="display: none;">
         <nav class="nav container">
             <a href="#" class="nav__logo" id="nav-logo">{{NAME}}</a>
             <i class='bx bx-sun change-theme' id="theme-button"></i>
@@ -1449,7 +1450,7 @@ body.light-theme {
     </header>
 
     <!--=============== MAIN ===============-->
-    <main class="main" id="main">
+    <main class="main" id="main" style="display: none;">
         <!--=============== HOME ===============-->
         <section class="home section" id="home">
             <div class="home__container container grid">
@@ -1510,7 +1511,7 @@ body.light-theme {
             </div>
         </section>
 
-                <!--=============== SPOTIFY DEMO ===============-->
+        <!--=============== SPOTIFY DEMO ===============-->
         <section class="spotify section" id="spotify">
             <span class="section__subtitle">Now Trending</span>
             <h2 class="section__title">India</h2>
@@ -1526,12 +1527,12 @@ body.light-theme {
             </div>
         </section>
 
-               <section class="contact section" id="contact">
+        <section class="contact section" id="contact">
             <span class="section__subtitle">Get in touch</span>
             <h2 class="section__title">Connect with me</h2>
 
             <div class="contact__container container grid">
-                <div  class="contact__content" id="contact-cards">
+                <div class="contact__content" id="contact-cards">
                     {{CONTACT_CARDS}}
                 </div>
             </div>
@@ -1539,7 +1540,7 @@ body.light-theme {
     </main>
 
     <!--=============== FOOTER ===============-->
-    <footer class="footer" id="footer">
+    <footer class="footer" id="footer" style="display: none;">
         <div class="footer__container container">
             <div class="developer-credit">
                 Designed and developed by <a href="https://samarthags.in" target="_blank">Samartha GS</a>
@@ -1547,7 +1548,7 @@ body.light-theme {
         </div>
     </footer>
 
-        <!--=============== SCROLLREVEAL ===============-->
+    <!--=============== SCROLLREVEAL ===============-->
     <script src="https://unpkg.com/scrollreveal"></script>
 
     <!--=============== FIREBASE & MAIN JS ===============-->
@@ -1573,6 +1574,22 @@ body.light-theme {
         let currentUsername = null;
         let hasLiked = false;
 
+        // Show loading
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        // Hide loading with smooth transition
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.opacity = '0';
+            loadingDiv.style.transition = 'opacity 0.5s ease';
+            
+            setTimeout(() => {
+                loadingDiv.style.display = 'none';
+            }, 500);
+        }
+
         // Format numbers with commas
         function formatNumber(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -1587,8 +1604,7 @@ body.light-theme {
         // Update page SEO and meta tags
         function updatePageMeta(profile) {
             document.title = `${profile.name} | MyPortfolio`;
-            document.getElementById('page-title').textContent = `${profile.name} | MyPortfolio`;
-
+            
             // Update meta description
             const metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc) {
@@ -1663,7 +1679,7 @@ body.light-theme {
 
             if (!username) {
                 // Show intro page
-                document.getElementById('loading').style.display = 'none';
+                hideLoading();
                 document.getElementById('intro-container').style.display = 'block';
                 return;
             }
@@ -1681,12 +1697,6 @@ body.light-theme {
                     // Update page meta
                     updatePageMeta(profile);
 
-                    // Show main content
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('header').style.display = 'block';
-                    document.getElementById('main').style.display = 'block';
-                    document.getElementById('footer').style.display = 'block';
-
                     // Populate profile data
                     populateProfile(profile);
 
@@ -1694,18 +1704,28 @@ body.light-theme {
                     await initializeStreakSystem();
                     await initializeLikeSystem();
 
-                    // Initialize scroll reveal
-                    initializeScrollReveal();
+                    // Show main content with smooth transition
+                    hideLoading();
+                    
+                    setTimeout(() => {
+                        document.getElementById('header').style.display = 'block';
+                        document.getElementById('main').style.display = 'block';
+                        document.getElementById('footer').style.display = 'block';
+                        
+                        // Initialize scroll reveal after content is shown
+                        initializeScrollReveal();
+                    }, 500);
 
                 } else {
                     // Profile not found
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('not-found').style.display = 'block';
+                    hideLoading();
+                    // You can add a not-found page here
+                    document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: white;"><h1>Profile not found</h1></div>';
                 }
             } catch (error) {
                 console.error("Error loading profile:", error);
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('not-found').style.display = 'block';
+                hideLoading();
+                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: white;"><h1>Error loading profile</h1></div>';
             }
         }
 
@@ -1957,7 +1977,7 @@ body.light-theme {
             const likesData = likesDoc.data();
             likeCount.textContent = formatNumber(likesData.count || 0);
 
-            // Check if user has already liked
+            // Check if user has already liked (using localStorage since we can't use browser storage APIs)
             const userLikeKey = `liked_${currentUsername}_${currentProfileId}`;
             hasLiked = localStorage.getItem(userLikeKey) === 'true';
 
@@ -2083,31 +2103,9 @@ body.light-theme {
         // Initialize everything when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             initializeTheme();
+            // Start loading profile immediately
             loadProfile();
         });
 
     </script>
-
-
-<script>
-  // Show loading initially
-  const loadingDiv = document.getElementById('loading');
-  loadingDiv.style.display = 'flex'; // or 'block' depending on your CSS
-
-  // Hide loading when DOM content is fully loaded
-  document.addEventListener('DOMContentLoaded', () => {
-      // Small delay to ensure smooth transition
-      setTimeout(() => {
-          loadingDiv.style.opacity = '0';
-          loadingDiv.style.transition = 'opacity 0.5s ease';
-
-          // Remove from display after fade-out
-          setTimeout(() => {
-              loadingDiv.style.display = 'none';
-          }, 500);
-      }, 200); // 200ms delay
-  });
-</script>
-
 </body>
-</html>
