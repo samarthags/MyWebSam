@@ -20,12 +20,19 @@ function absoluteBase(req) {
   );
 }
 
+// Reserved paths we don’t want in sitemap
+const RESERVED = new Set(["api", "signup", "sitemap.xml"]);
+
 export default async function handler(req, res) {
   try {
     initFirebase();
     const db = admin.firestore();
 
-    const profilesSnap = await db.collection("profiles").select("username").get();
+    // If you store timestamps, make sure they are saved as Firestore Timestamps
+    const profilesSnap = await db
+      .collection("profiles")
+      .select("username", "updatedAt")
+      .get();
 
     const base = absoluteBase(req).replace(/\/+$/, "");
     const urls = [];
@@ -33,10 +40,26 @@ export default async function handler(req, res) {
     profilesSnap.forEach((doc) => {
       const data = doc.data();
       if (!data?.username) return;
-      const loc = `${base}/${encodeURIComponent(
-        String(data.username).toLowerCase()
-      )}`;
-      urls.push(`<url><loc>${loc}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
+
+      const username = String(data.username).toLowerCase();
+      if (RESERVED.has(username)) return; // skip unwanted routes
+
+      const loc = `${base}/${encodeURIComponent(username)}`;
+
+      // Handle lastmod if available
+      let lastmod = new Date();
+      if (data.updatedAt?.toDate) {
+        lastmod = data.updatedAt.toDate();
+      }
+
+      urls.push(
+        `<url>
+          <loc>${loc}</loc>
+          <lastmod>${lastmod.toISOString().split("T")[0]}</lastmod>
+          <changefreq>weekly</changefreq>
+          <priority>0.8</priority>
+        </url>`
+      );
     });
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
