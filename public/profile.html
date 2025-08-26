@@ -884,58 +884,86 @@ body.light-theme {
 .contact__form-area textarea {
   resize: none;
 }
-/*=============== FOOTER ===============*/
+/* Footer Styling */
 .footer {
-  background-color: var(--first-color);
+    background-color: var(--container-color);
+    border-top: 1px solid var(--border-color);
+    padding: 2rem 0 1.5rem;
+    margin-top: 3rem;
 }
 
 .footer__container {
-  padding: 2rem 0 6rem;
+    max-width: 968px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
-.footer__title,
-.footer__link {
-  color: var(--body-color);
+.developer-credit {
+    text-align: center;
+    color: var(--text-color);
+    font-size: var(--small-font-size);
+    line-height: 1.5;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
 }
 
-.footer__title {
-  text-align: center;
-  margin-bottom: 2rem;
+.developer-credit:hover {
+    opacity: 1;
 }
 
-.footer__list {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  column-gap: 1.5rem;
-  margin-bottom: 2rem;
+.developer-credit a {
+    color: var(--first-color);
+    text-decoration: none;
+    font-weight: var(--font-medium);
+    transition: all 0.3s ease;
+    border-bottom: 1px solid transparent;
 }
 
-.footer__social {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  column-gap: 1.25rem;
+.developer-credit a:hover {
+    color: var(--first-color-alt);
+    border-bottom: 1px solid var(--first-color-alt);
+    transform: translateY(-1px);
 }
 
-.footer__social-link {
-  background-color: var(--body-color);
-  color: var(--first-color);
-  padding: 0.35rem;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  display: inline-flex;
+/* Dark theme footer */
+.dark-theme .footer {
+    background-color: var(--body-color);
+    border-top-color: rgba(255, 255, 255, 0.1);
 }
 
-.footer__copy {
-  display: block;
-  margin-top: 4.5rem;
-  color: var(--container-color);
-  text-align: center;
-  font-size: var(--smaller-font-size);
-  margin-bottom: 2rem;
+.dark-theme .developer-credit {
+    color: var(--text-color-light);
 }
 
+/* Light theme footer */
+.light-theme .footer {
+    background-color: #f8f9fa;
+    border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .developer-credit {
+    color: var(--text-color);
+}
+
+/* Responsive footer */
+@media screen and (max-width: 768px) {
+    .footer {
+        padding: 1.5rem 0 1rem;
+        margin-top: 2rem;
+    }
+
+    .developer-credit {
+        font-size: var(--smaller-font-size);
+        padding: 0 0.5rem;
+    }
+}
+
+@media screen and (max-width: 350px) {
+    .developer-credit {
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+}
 /*=============== SCROLL BAR ===============*/
 ::-webkit-scrollbar {
   width: 0.5rem;
