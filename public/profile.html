@@ -2087,5 +2087,27 @@ body.light-theme {
         });
 
     </script>
+
+
+<script>
+  // Show loading initially
+  const loadingDiv = document.getElementById('loading');
+  loadingDiv.style.display = 'flex'; // or 'block' depending on your CSS
+
+  // Hide loading when DOM content is fully loaded
+  document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+          loadingDiv.style.opacity = '0';
+          loadingDiv.style.transition = 'opacity 0.5s ease';
+
+          // Remove from display after fade-out
+          setTimeout(() => {
+              loadingDiv.style.display = 'none';
+          }, 500);
+      }, 200); // 200ms delay
+  });
+</script>
+
 </body>
 </html>
