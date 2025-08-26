@@ -785,7 +785,7 @@ body.light-theme {
 /*=============== CONTACT ===============*/
 .contact__container {
   row-gap: 3rem;
-  padding-bottom: 3rem;
+  padding-bottom: 0rem;
 }
 
 .contact__title {
@@ -1335,86 +1335,7 @@ body.light-theme {
 }
 
 
-/* Footer Styling */
-.footer {
-    background-color: var(--container-color);
-    border-top: 1px solid var(--border-color);
-    padding: 2rem 0 1.5rem;
-    margin-top: 3rem;
-}
 
-.footer__container {
-    max-width: 968px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-.developer-credit {
-    text-align: center;
-    color: var(--text-color);
-    font-size: var(--small-font-size);
-    line-height: 1.5;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-}
-
-.developer-credit:hover {
-    opacity: 1;
-}
-
-.developer-credit a {
-    color: var(--first-color);
-    text-decoration: none;
-    font-weight: var(--font-medium);
-    transition: all 0.3s ease;
-    border-bottom: 1px solid transparent;
-}
-
-.developer-credit a:hover {
-    color: var(--first-color-alt);
-    border-bottom: 1px solid var(--first-color-alt);
-    transform: translateY(-1px);
-}
-
-/* Dark theme footer */
-.dark-theme .footer {
-    background-color: var(--body-color);
-    border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-.dark-theme .developer-credit {
-    color: var(--text-color-light);
-}
-
-/* Light theme footer */
-.light-theme .footer {
-    background-color: #f8f9fa;
-    border-top-color: rgba(0, 0, 0, 0.1);
-}
-
-.light-theme .developer-credit {
-    color: var(--text-color);
-}
-
-/* Responsive footer */
-@media screen and (max-width: 768px) {
-    .footer {
-        padding: 1.5rem 0 1rem;
-        margin-top: 2rem;
-    }
-
-    .developer-credit {
-        font-size: var(--smaller-font-size);
-        padding: 0 0.5rem;
-    }
-}
-
-@media screen and (max-width: 350px) {
-    .developer-credit {
-        font-size: 0.75rem;
-        line-height: 1.4;
-    }
-}
 </style>
 
 
