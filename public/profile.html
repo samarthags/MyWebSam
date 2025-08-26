@@ -20,8 +20,31 @@
     <link href='https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css' rel='stylesheet'>
 
     
-    <title id="page-title">{{NAME}} | Mywebsam</title>
-    <meta name="description" content="{{BIO}}">
+   <title id="page-title">{{NAME}} | Mywebsam</title>
+<meta name="description" content="{{BIO}}">
+<meta name="author" content="{{NAME}}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{PAGE_URL}}">
+
+<!-- Open Graph (Facebook, LinkedIn, WhatsApp, etc.) -->
+<meta property="og:type" content="profile">
+<meta property="og:title" content="{{NAME}} | Mywebsam">
+<meta property="og:description" content="{{BIO}}">
+<meta property="og:image" content="{{IMAGE}}">
+<meta property="og:url" content="{{PAGE_URL}}">
+<meta property="og:site_name" content="Mywebsam">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{NAME}} | Mywebsam">
+<meta name="twitter:description" content="{{BIO}}">
+<meta name="twitter:image" content="{{IMAGE}}">
+<meta name="twitter:url" content="{{PAGE_URL}}">
+
+<!-- JSON-LD schema.org -->
+<script type="application/ld+json">
+{{JSON_LD}}
+</script>
 
 <style>
 /*=============== GOOGLE FONTS ===============*/
