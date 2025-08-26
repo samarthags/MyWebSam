@@ -2,7 +2,6 @@ import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
 
-// Initialize Firebase Admin SDK
 function initFirebase() {
   if (admin.apps.length) return;
 
@@ -17,7 +16,6 @@ function initFirebase() {
   });
 }
 
-// Escape HTML to prevent XSS
 function escapeHtml(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -27,13 +25,11 @@ function escapeHtml(str = "") {
     .replaceAll("'", "&#39;");
 }
 
-// Shorten text for summaries
 function textSummary(str = "", max = 160) {
   const clean = str.replace(/\s+/g, " ").trim();
   return clean.length > max ? clean.slice(0, max - 1) + "…" : clean;
 }
 
-// Build absolute URL
 function absoluteUrl(req, path = "") {
   const base =
     process.env.SITE_BASE_URL ||
@@ -46,11 +42,50 @@ export default async function handler(req, res) {
     initFirebase();
     const db = admin.firestore();
 
-    // Get username from query
-    const usernameRaw = (req.query.username || "").toString().trim().toLowerCase();
-    if (!usernameRaw) return res.status(400).send("Missing username");
+    // Get username from query OR path
+    const usernameRaw = (req.query.username || req.url.replace("/", "")).toString().trim().toLowerCase();
 
-    // Fetch profile from Firestore
+    // If root path (no username), show landing page
+    if (!usernameRaw) {
+      const landingHtml = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Create Your Own Profile - MyPortfolio</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; text-align: center; }
+            header { background: #4f46e5; color: #fff; padding: 2rem; }
+            h1 { font-size: 2rem; margin: 0; }
+            p { color: #444; margin-top: 1rem; }
+            .preview { display: flex; flex-wrap: wrap; justify-content: center; margin: 2rem 0; gap: 1rem; }
+            .preview img { width: 280px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+            .btn { display: inline-block; padding: 1rem 2rem; font-size: 1.2rem; background: #4f46e5; color: #fff;
+                   border-radius: 8px; text-decoration: none; transition: background 0.3s; }
+            .btn:hover { background: #3730a3; }
+          </style>
+        </head>
+        <body>
+          <header>
+            <h1>Create Your Own Responsive Profile</h1>
+            <p>Showcase yourself with a personal page in seconds!</p>
+          </header>
+          <section class="preview">
+            <img src="https://via.placeholder.com/280x180.png?text=Profile+Preview+1" alt="Profile Preview 1">
+            <img src="https://via.placeholder.com/280x180.png?text=Profile+Preview+2" alt="Profile Preview 2">
+            <img src="https://via.placeholder.com/280x180.png?text=Profile+Preview+3" alt="Profile Preview 3">
+          </section>
+          <a href="/signup" class="btn">Create Your Web</a>
+        </body>
+        </html>
+      `;
+
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(200).send(landingHtml);
+    }
+
+    // Otherwise: load user profile
     const snap = await db
       .collection("profiles")
       .where("username", "==", usernameRaw)
@@ -60,8 +95,6 @@ export default async function handler(req, res) {
     if (snap.empty) return res.status(404).send("Profile not found");
 
     const profile = snap.docs[0].data();
-
-    // Prepare fields
     const name = profile.name || usernameRaw;
     const bio = textSummary(profile.bio || "Profile on MyPortfolio");
     const image = profile.imageUrl || "https://via.placeholder.com/1200x630.png?text=MyPortfolio";
@@ -69,10 +102,8 @@ export default async function handler(req, res) {
     const birthday = profile.birthday || "";
     const pageUrl = absoluteUrl(req, `/${usernameRaw}`);
 
-    // Social links array for schema.org
     const sameAs = [];
     const add = (cond, url) => cond && sameAs.push(url);
-
     add(profile.instagram, `https://www.instagram.com/${profile.instagram}`);
     add(profile.snapchat, `https://www.snapchat.com/add/${profile.snapchat}`);
     add(profile.youtubeChannel, `https://www.youtube.com/${profile.youtubeChannel}`);
@@ -95,11 +126,9 @@ export default async function handler(req, res) {
       ...(birthday ? { birthDate: new Date(birthday).toISOString().slice(0, 10) } : {}),
     };
 
-    // Read profile.html template
     const templatePath = path.join(process.cwd(), "public", "profile.html");
     let html = fs.readFileSync(templatePath, "utf-8");
 
-    // Replace placeholders in HTML
     html = html
       .replace(/{{NAME}}/g, escapeHtml(name))
       .replace(/{{BIO}}/g, escapeHtml(bio))
@@ -112,7 +141,6 @@ export default async function handler(req, res) {
       )
       .replace(/{{JSON_LD}}/g, JSON.stringify(jsonLd));
 
-    // Send HTML
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
     res.status(200).send(html);
