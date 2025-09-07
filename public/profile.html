@@ -421,12 +421,14 @@ body.light-theme {
   width: max-content;
   background-color: var(--container-color);
   color: var(--first-color);
-  padding: 0.25rem;
+  padding: 0.5rem; /* Changed from 0.25rem to 0.5rem */
+  margin-bottom: 0.5rem; /* Added this line */
   border-radius: 0.5rem;
   display: flex;
   font-size: 1rem;
   transition: 0.4s;
 }
+
 
 .home__social-link:hover {
   background-color: var(--first-color);
@@ -793,8 +795,10 @@ body.light-theme {
 
 .contact__info {
   display: grid;
-  gap: 1rem;
+  gap: 2rem; /* Increased from 1rem to 2rem */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Added this line */
 }
+
 
 .contact__card {
   background-color: var(--container-color);
