@@ -469,15 +469,28 @@ body.light-theme {
   padding: 0.75rem 1rem;
   border-radius: 0.8rem;
   font-weight: var(--font-medium);
-  transition: 0.4s;
+  transition: background-color 0.4s, color 0.4s;
+  animation: zoomOnce 0.6s ease forwards; /* Single pop on page load */
 }
 
-
-
+/* Ghost button */
 .button--ghost {
   background-color: transparent;
   color: var(--first-color);
   border: 1px solid var(--first-color);
+}
+
+/* Keyframes for single zoom effect */
+@keyframes zoomOnce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2); /* Enlarge */
+  }
+  100% {
+    transform: scale(1); /* Back to normal */
+  }
 }
 
 /*=============== ABOUT ===============*/
