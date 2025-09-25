@@ -470,7 +470,7 @@ body.light-theme {
   border-radius: 0.8rem;
   font-weight: var(--font-medium);
   transition: background-color 0.4s, color 0.4s;
-  animation: zoomOnce 0.6s ease forwards; /* Single pop on page load */
+  animation: pulse 1s ease-in-out infinite; /* Continuous pulsing */
 }
 
 /* Ghost button */
@@ -480,16 +480,13 @@ body.light-theme {
   border: 1px solid var(--first-color);
 }
 
-/* Keyframes for single zoom effect */
-@keyframes zoomOnce {
-  0% {
-    transform: scale(1);
+/* Keyframes for pulsing zoom */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1); /* Normal size */
   }
   50% {
-    transform: scale(1.2); /* Enlarge */
-  }
-  100% {
-    transform: scale(1); /* Back to normal */
+    transform: scale(1.2); /* Zoom in */
   }
 }
 
