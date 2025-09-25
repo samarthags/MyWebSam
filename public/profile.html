@@ -470,7 +470,7 @@ body.light-theme {
   border-radius: 0.8rem;
   font-weight: var(--font-medium);
   transition: background-color 0.4s, color 0.4s;
-  animation: pulse 1s ease-in-out infinite; /* Continuous pulsing */
+  animation: popOnce 8.0s ease forwards; /* single subtle pop */
 }
 
 /* Ghost button */
@@ -480,13 +480,16 @@ body.light-theme {
   border: 1px solid var(--first-color);
 }
 
-/* Keyframes for pulsing zoom */
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1); /* Normal size */
+/* Keyframes for subtle pop effect */
+@keyframes popOnce {
+  0% {
+    transform: scale(1);
   }
   50% {
-    transform: scale(1.2); /* Zoom in */
+    transform: scale(1.15); /* slightly bigger */
+  }
+  100% {
+    transform: scale(1); /* back to normal */
   }
 }
 
