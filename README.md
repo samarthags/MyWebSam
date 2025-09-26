@@ -62,7 +62,7 @@ Open http://localhost:3000 in your browser.
 
 🌍 Live Demo
 
-Try it live at mywebsam.site – create your personal link in seconds.
+Try it live at https://mywebsam.site – create your personal link in seconds.
 
 
 ---
