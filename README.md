@@ -1,6 +1,6 @@
 # 🌐 MyWebSam – Personal Website Creator
 
-![MyWebSam Screenshot](path/to/screenshot.png)
+![MyWebSam Screenshot](https://res.cloudinary.com/dw1qrki2c/image/upload/v1758904896/mhvyj2bfimktybvlvb22.jpg)
 
 **MyWebSam** is a fast and responsive personal website creator inspired by Linktree.  
 Users can generate a fully functional mini-website in seconds, storing profile metadata in **Firebase** and images in **Cloudinary**, all powered by **Next.js** for optimal performance.
