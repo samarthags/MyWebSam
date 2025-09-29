@@ -162,9 +162,10 @@ button {
 
 
 #profile-name {
-  display: inline-block;       /* keep inline behavior */
-  transform-origin: center;    /* keep position */
-  animation: rubberBandLoop 3.5s ease-in-out infinite;
+  display: inline-block;       /* keeps it inline */
+  transform-origin: center;    /* animation pivots from center */
+  animation: rubberBandLoop 1s ease-in-out infinite; /* repeat infinitely */
+  animation-delay: 2.5s;       /* initial delay so it repeats every 3.5s */
   font-size: inherit;          /* keep existing font size */
   font-weight: inherit;        /* keep existing font weight */
 }
@@ -192,7 +193,6 @@ button {
     transform: scale(1);
   }
 }
-
 
 
 
