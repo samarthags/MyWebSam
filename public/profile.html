@@ -162,11 +162,14 @@ button {
 
 
 #profile-name {
-  /* Keep all existing styles untouched */
-  animation: rubberBandOnce 5s ease-in-out forwards;
+  display: inline-block;       /* keep inline behavior */
+  transform-origin: center;    /* keep position */
+  animation: rubberBandLoop 3.5s ease-in-out infinite;
+  font-size: inherit;          /* keep existing font size */
+  font-weight: inherit;        /* keep existing font weight */
 }
 
-@keyframes rubberBandOnce {
+@keyframes rubberBandLoop {
   0% {
     transform: scale(1);
   }
