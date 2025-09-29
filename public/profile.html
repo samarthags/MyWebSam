@@ -155,6 +155,50 @@ button {
   outline: none;
 }
 
+
+
+
+
+
+
+
+#profile-bio {
+  font-family: monospace;
+  font-size: 1.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 2px solid #fff; /* cursor effect */
+  display: inline-block;
+  animation: typing 4s steps(20) infinite, blink 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  0%, 10% {
+    width: 0;
+  }
+  50% {
+    width: 100%;
+  }
+  60%, 100% {
+    width: 0;
+  }
+}
+
+@keyframes blink {
+  0%, 50%, 100% {
+    border-color: transparent;
+  }
+  25%, 75% {
+    border-color: #fff;
+  }
+}
+
+
+
+
+
+
+
 img {
   max-width: 100%;
   height: auto;
