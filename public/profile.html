@@ -163,21 +163,24 @@ button {
 
 #profile-name {
   display: inline-block;
+  transform-origin: center;
   animation: rubberBand 3s ease-in-out infinite;
+  font-size: inherit;   /* keep existing font size */
+  font-weight: inherit; /* keep existing font weight */
 }
 
 @keyframes rubberBand {
   0% {
-    transform: scaleX(1) scaleY(1);
+    transform: scale(1);
   }
   30% {
-    transform: scaleX(1.25) scaleY(0.75);
+    transform: scaleX(1.2) scaleY(0.8);
   }
   40% {
-    transform: scaleX(0.75) scaleY(1.25);
+    transform: scaleX(0.8) scaleY(1.2);
   }
   50% {
-    transform: scaleX(1.15) scaleY(0.85);
+    transform: scaleX(1.1) scaleY(0.9);
   }
   65% {
     transform: scaleX(0.95) scaleY(1.05);
@@ -186,7 +189,7 @@ button {
     transform: scaleX(1.05) scaleY(0.95);
   }
   100% {
-    transform: scaleX(1) scaleY(1);
+    transform: scale(1);
   }
 }
 
