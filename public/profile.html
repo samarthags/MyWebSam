@@ -159,30 +159,46 @@ button {
 
 
 
-#profile-name {
+#profile-bio {
   display: inline-block;
-  animation: tada 3.5s ease-in-out infinite;
+  animation: tadaRest 5.5s ease-in-out infinite; /* 3.5s animation + 2s rest */
 }
 
-@keyframes tada {
+@keyframes tadaRest {
   0% {
     transform: scale(1) rotate(0deg);
   }
-  10%, 20% {
+  6% {  /* ~0.2s into animation */
     transform: scale(0.9) rotate(-3deg);
   }
-  30%, 50%, 70%, 90% {
+  17% { /* ~0.6s */
     transform: scale(1.1) rotate(3deg);
   }
-  40%, 60%, 80% {
+  23% { /* ~0.8s */
     transform: scale(1.1) rotate(-3deg);
   }
-  100% {
+  29% { /* ~1s */
+    transform: scale(1.1) rotate(3deg);
+  }
+  35% { /* ~1.2s */
+    transform: scale(1.1) rotate(-3deg);
+  }
+  41% { /* ~1.4s */
+    transform: scale(1.1) rotate(3deg);
+  }
+  47% { /* ~1.6s */
+    transform: scale(1.1) rotate(-3deg);
+  }
+  53% { /* ~1.8s */
+    transform: scale(1.1) rotate(3deg);
+  }
+  59% { /* ~2s */
+    transform: scale(1) rotate(0deg);
+  }
+  100% { /* rest until next animation */
     transform: scale(1) rotate(0deg);
   }
 }
-
-
 
 
 
