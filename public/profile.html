@@ -159,31 +159,32 @@ button {
 
 
 
-
-#profile-bio {
+#profile-name {
   display: inline-block;
-  font-size: inherit;      /* keep current font size */
-  font-weight: inherit;    /* keep current font weight */
-  opacity: 0;
-  animation: fadeLoop 4s ease-in-out infinite;
+  animation: rubberBand 2s ease-in-out infinite;
 }
 
-@keyframes fadeLoop {
+@keyframes rubberBand {
   0% {
-    opacity: 0;
-    transform: translateY(10px);
+    transform: scaleX(1) scaleY(1);
   }
-  10% {
-    opacity: 1;
-    transform: translateY(0);
+  30% {
+    transform: scaleX(1.25) scaleY(0.75);
   }
-  90% {
-    opacity: 1;
-    transform: translateY(0);
+  40% {
+    transform: scaleX(0.75) scaleY(1.25);
+  }
+  50% {
+    transform: scaleX(1.15) scaleY(0.85);
+  }
+  65% {
+    transform: scaleX(0.95) scaleY(1.05);
+  }
+  75% {
+    transform: scaleX(1.05) scaleY(0.95);
   }
   100% {
-    opacity: 0;
-    transform: translateY(-10px);
+    transform: scaleX(1) scaleY(1);
   }
 }
 
