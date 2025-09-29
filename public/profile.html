@@ -1809,123 +1809,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <script>
-(function(){
-  const shareButton = document.getElementById('share-button');
-  if (!shareButton) return;
+document.getElementById("share-button").addEventListener("click", async () => {
+  const name = "theirname"; // dynamically replace this if needed
+  const shareURL = `https://mywebsam.site/${name}`;
 
-  function canvasToBlob(canvas){
-    return new Promise(res => canvas.toBlob(b => res(b), "image/png"));
-  }
-
-  function downloadBlob(blob, filename){
-    const a = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
-  }
-
-  function waitForQRCodeImage(qrDiv, timeout=3000){
-    return new Promise(resolve => {
-      let waited = 0;
-      const t = setInterval(() => {
-        const img = qrDiv.querySelector("img");
-        if (img && img.complete) {
-          const q = new Image();
-          q.crossOrigin = "Anonymous";
-          q.onload = () => { clearInterval(t); resolve(q); };
-          q.onerror = () => { clearInterval(t); resolve(null); };
-          q.src = img.src;
-        }
-        waited += 100;
-        if (waited >= timeout) { clearInterval(t); resolve(null); }
-      },100);
-    });
-  }
-
-  shareButton.addEventListener('click', async () => {
-    const profileURL = window.location.href;
-
-    // Load QR library
-    await new Promise((res, rej) => {
-      if (window.QRCode) return res();
-      const s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
-      s.onload = res;
-      s.onerror = rej;
-      document.head.appendChild(s);
-    });
-
-    // Generate QR (hidden)
-    const qrDiv = document.createElement("div");
-    qrDiv.style.display = "none";
-    document.body.appendChild(qrDiv);
-    new QRCode(qrDiv, { text: profileURL, width: 600, height: 600 });
-    const qrImg = await waitForQRCodeImage(qrDiv);
-
-    // Modal
-    const overlay = document.createElement("div");
-    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;";
-    overlay.innerHTML = `
-      <div style="background:#000;border-radius:20px;padding:12px;text-align:center;position:relative;">
-        <div id="close-modal" style="position:absolute;right:10px;top:6px;font-size:22px;color:#fff;cursor:pointer;">&times;</div>
-        <canvas id="storyCanvas" style="width:300px;height:500px;border-radius:16px;"></canvas>
-        <div style="margin-top:12px;">
-          <button id="download-image" style="margin:4px;padding:8px 12px;border:none;border-radius:8px;background:#fff;color:#000;">Download</button>
-          <button id="share-image" style="margin:4px;padding:8px 12px;border:none;border-radius:8px;background:#1db954;color:#fff;">Share</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    document.getElementById("close-modal").onclick = () => overlay.remove();
-
-    // Draw Story Canvas
-    const canvas = document.getElementById("storyCanvas");
-    canvas.width = 1080;
-    canvas.height = 1920;
-    const ctx = canvas.getContext("2d");
-
-    // Gradient BG
-    const g = ctx.createLinearGradient(0,0,0,canvas.height);
-    g.addColorStop(0,"#1db954");
-    g.addColorStop(1,"#191414");
-    ctx.fillStyle = g;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    // Draw QR in center
-    if(qrImg){
-      const qrSize = 600;
-      ctx.drawImage(qrImg, canvas.width/2 - qrSize/2, canvas.height/2 - qrSize/2, qrSize, qrSize);
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "Visit my portfolio website",
+        text: "Check out my portfolio 🚀",
+        url: shareURL
+      });
+    } catch (err) {
+      console.error("Share failed:", err.message);
     }
-
-    // Download
-    document.getElementById("download-image").onclick = async () => {
-      const blob = await canvasToBlob(canvas);
-      downloadBlob(blob, "story.png");
-    };
-
-    // Share
-    document.getElementById("share-image").onclick = async () => {
-      try {
-        const blob = await canvasToBlob(canvas);
-        const file = new File([blob], "story.png",{type:"image/png"});
-        if(navigator.canShare && navigator.canShare({files:[file]})){
-          await navigator.share({files:[file],title:"Visit Website"});
-        } else {
-          downloadBlob(blob, "story.png");
-          alert("Sharing not supported. Image downloaded.");
-        }
-      } catch(e){
-        console.error(e);
-        alert("Share failed. Image downloaded.");
-      }
-    };
-
-    qrDiv.remove();
-  });
-})();
+  } else {
+    navigator.clipboard.writeText(shareURL);
+    alert("Sharing not supported. Link copied!");
+  }
+});
 </script>
 
 </body>
