@@ -1513,7 +1513,7 @@ body.light-theme {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getFirestore, collection, getDocs, query, where, doc, updateDoc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Firebase configuration
+// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyBb3x_zD9JaFwL9PhmngCNZlS2fOh6MBa4",
     authDomain: "newai-52371.firebaseapp.com",
@@ -1526,15 +1526,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Global variables
+// Globals
 let currentProfileId = null;
 let currentUsername = null;
 let hasLiked = false;
 
-// Show/hide loading
-function showLoading() {
-    document.getElementById('loading').style.display = 'flex';
-}
+// Loading helpers
+function showLoading() { document.getElementById('loading').style.display = 'flex'; }
 function hideLoading() {
     const loadingDiv = document.getElementById('loading');
     loadingDiv.style.opacity = '0';
@@ -1542,10 +1540,8 @@ function hideLoading() {
     setTimeout(() => { loadingDiv.style.display = 'none'; }, 500);
 }
 
-// Format numbers
-function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
+// Format number
+function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
 // Get username from URL
 function getUsernameFromPath() {
@@ -1553,11 +1549,11 @@ function getUsernameFromPath() {
     return path ? decodeURIComponent(path).toLowerCase() : null;
 }
 
-// Update SEO/meta
+// Update page meta
 function updatePageMeta(profile) {
     document.title = `${profile.name} | MyPortfolio`;
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute('content', profile.bio || `Check out ${profile.name}'s profile`);
+    if(metaDesc) metaDesc.setAttribute('content', profile.bio || `Check out ${profile.name}'s profile`);
 }
 
 // Load profile
@@ -1567,7 +1563,8 @@ async function loadProfile() {
 
     if (!username) {
         hideLoading();
-        document.getElementById('intro-container').style.display = 'block';
+        const intro = document.getElementById('intro-container');
+        if(intro) intro.style.display = 'block';
         return;
     }
 
@@ -1586,11 +1583,16 @@ async function loadProfile() {
 
             hideLoading();
             setTimeout(() => {
-                document.getElementById('header').style.display = 'block';
-                document.getElementById('main').style.display = 'block';
-                document.getElementById('footer').style.display = 'block';
+                const header = document.getElementById('header');
+                const main = document.getElementById('main');
+                const footer = document.getElementById('footer');
+                if(header) header.style.display = 'block';
+                if(main) main.style.display = 'block';
+                if(footer) footer.style.display = 'block';
+
                 initializeScrollReveal();
             }, 500);
+
         } else {
             hideLoading();
             document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:white;"><h1>Profile not found</h1></div>';
@@ -1602,27 +1604,44 @@ async function loadProfile() {
     }
 }
 
-// Populate profile
+// Populate profile data
 function populateProfile(profile) {
-    document.getElementById('profile-name').textContent = profile.name || 'Name';
-    document.getElementById('profile-bio').textContent = profile.bio || 'Content Creator';
-    document.getElementById('nav-logo').textContent = profile.name || 'Profile';
+    const nameEl = document.getElementById('profile-name');
+    if(nameEl) nameEl.textContent = profile.name || 'Name';
 
-    const profileImg = document.getElementById('profile-image');
-    profileImg.src = profile.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image';
-    profileImg.alt = profile.name || 'Profile Image';
+    const bioEl = document.getElementById('profile-bio');
+    if(bioEl) bioEl.textContent = profile.bio || 'Content Creator';
 
-    document.getElementById('location-display')?.textContent = profile.location || 'Not specified';
-    document.getElementById('birthday-display')?.textContent = profile.birthday ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : 'Not specified';
+    const logoEl = document.getElementById('nav-logo');
+    if(logoEl) logoEl.textContent = profile.name || 'Profile';
 
-    // Social links
+    const imgEl = document.getElementById('profile-image');
+    if(imgEl) {
+        imgEl.src = profile.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image';
+        imgEl.alt = profile.name || 'Profile Image';
+    }
+
+    const locationEl = document.getElementById('location-display');
+    if(locationEl) locationEl.textContent = profile.location || 'Not specified';
+
+    const birthdayEl = document.getElementById('birthday-display');
+    if(birthdayEl) {
+        birthdayEl.textContent = profile.birthday ? new Date(profile.birthday).toLocaleDateString('en-US', {month:'long', day:'numeric'}) : 'Not specified';
+    }
+
+    // Hide main CTA (YouTube removed)
+    const mainCta = document.getElementById('main-cta');
+    if(mainCta) mainCta.style.display = 'none';
+
     populateSocialLinks(profile);
     populateContactCards(profile);
 }
 
-// Populate social links
+// Populate social links (first 3)
 function populateSocialLinks(profile) {
     const socialContainer = document.getElementById('social-links');
+    if(!socialContainer) return;
+
     let socialHTML = '';
     const socialPlatforms = {
         instagram: { url: `https://www.instagram.com/${profile.instagram}`, icon: 'bxl-instagram' },
@@ -1634,57 +1653,66 @@ function populateSocialLinks(profile) {
         telegram: { url: `https://t.me/${profile.telegram}`, icon: 'bxl-telegram' },
         whatsapp: { url: `https://wa.me/${profile.whatsapp}`, icon: 'bxl-whatsapp' }
     };
-    let homeCount = 0;
+
+    let count = 0;
     Object.entries(socialPlatforms).forEach(([platform, config]) => {
-        if (profile[platform] && homeCount < 3) {
+        if(profile[platform] && count < 3) {
             socialHTML += `<a href="${config.url}" target="_blank" class="home__social-link"><i class='bx ${config.icon}'></i></a>`;
-            homeCount++;
+            count++;
         }
     });
+
     socialContainer.innerHTML = socialHTML;
 }
 
 // Populate contact cards
 function populateContactCards(profile) {
     const contactContainer = document.getElementById('contact-cards');
+    if(!contactContainer) return;
+
     let contactHTML = '';
-    const socials = ['instagram','snapchat','twitter','facebook','linkedin','github','telegram','whatsapp'];
-    socials.forEach(platform => {
-        if(profile[platform]){
+
+    const fields = [
+        { key: 'instagram', label: 'Instagram', urlPrefix: 'https://www.instagram.com/', buttonText: 'Follow', icon: 'bxl-instagram' },
+        { key: 'snapchat', label: 'Snapchat', urlPrefix: 'https://www.snapchat.com/add/', buttonText: 'Add Me', icon: 'bxl-snapchat' },
+        { key: 'twitter', label: 'Twitter', urlPrefix: 'https://twitter.com/', buttonText: 'Follow', icon: 'bxl-twitter' },
+        { key: 'facebook', label: 'Facebook', urlPrefix: 'https://facebook.com/', buttonText: 'Follow', icon: 'bxl-facebook' },
+        { key: 'linkedin', label: 'LinkedIn', urlPrefix: 'https://linkedin.com/in/', buttonText: 'Connect', icon: 'bxl-linkedin' },
+        { key: 'github', label: 'GitHub', urlPrefix: 'https://github.com/', buttonText: 'Follow', icon: 'bxl-github' },
+        { key: 'telegram', label: 'Telegram', urlPrefix: 'https://t.me/', buttonText: 'Message', icon: 'bxl-telegram' },
+        { key: 'whatsapp', label: 'WhatsApp', urlPrefix: 'https://wa.me/', buttonText: 'Message', icon: 'bxl-whatsapp' },
+        { key: 'email', label: 'Email', urlPrefix: 'mailto:', buttonText: 'Email Me', icon: 'bxs-envelope' }
+    ];
+
+    fields.forEach(f => {
+        if(profile[f.key]) {
             contactHTML += `
-                <div class="contact__card">
-                    <i class='bx bxl-${platform} contact__card-icon'></i>
-                    <h3 class="contact__card-title">${platform.charAt(0).toUpperCase()+platform.slice(1)}</h3>
-                    <span class="contact__card-data">${profile[platform]}</span>
-                    <a href="${platform==='whatsapp'?`https://wa.me/${profile[platform]}`:`https://${platform}.com/${profile[platform]}`}" target="_blank" class="contact__button">
-                        Visit <i class='bx bx-right-arrow-alt'></i>
+                <div class="contact__card ${f.key==='email'?'contact__card-email':''}">
+                    <i class='bx ${f.icon} contact__card-icon'></i>
+                    <h3 class="contact__card-title">${f.label}</h3>
+                    <span class="contact__card-data">${f.key==='email'?profile[f.key]:'@'+profile[f.key]}</span>
+                    <a href="${f.urlPrefix}${profile[f.key]}" target="_blank" class="contact__button">
+                        ${f.buttonText} <i class='bx bx-right-arrow-alt'></i>
                     </a>
-                </div>`;
+                </div>
+            `;
         }
     });
-    if(profile.email){
-        contactHTML += `
-            <div class="contact__card contact__card-email">
-                <i class='bx bxs-envelope contact__card-icon'></i>
-                <h3 class="contact__card-title">Email</h3>
-                <span class="contact__card-data">${profile.email}</span>
-                <a href="mailto:${profile.email}" class="contact__button">
-                    Email Me <i class='bx bx-right-arrow-alt'></i>
-                </a>
-            </div>`;
-    }
+
     contactContainer.innerHTML = contactHTML;
 }
 
-// Likes system
+// Like system
 async function initializeLikeSystem() {
-    if (!currentProfileId) return;
+    if(!currentProfileId) return;
+
     const likeButton = document.getElementById('likeButton');
     const likeCount = document.getElementById('likeCount');
+    if(!likeButton || !likeCount) return;
+
     const likesRef = doc(db, "profileLikes", currentProfileId);
     let likesDoc = await getDoc(likesRef);
-
-    if (!likesDoc.exists()) {
+    if(!likesDoc.exists()) {
         await setDoc(likesRef, { count: 0, profileId: currentProfileId, username: currentUsername });
         likesDoc = await getDoc(likesRef);
     }
@@ -1694,18 +1722,16 @@ async function initializeLikeSystem() {
 
     const userLikeKey = `liked_${currentUsername}_${currentProfileId}`;
     hasLiked = localStorage.getItem(userLikeKey) === 'true';
-    if (hasLiked) likeButton.classList.add('button--liked');
+    if(hasLiked) likeButton.classList.add('button--liked');
 
     likeButton.addEventListener('click', async () => {
-        if (hasLiked) {
-            likeButton.classList.add('shake');
-            setTimeout(() => likeButton.classList.remove('shake'), 500);
-            return;
-        }
+        if(hasLiked) return; // ignore repeated likes
+
         hasLiked = true;
         localStorage.setItem(userLikeKey, 'true');
         likeButton.classList.add('button--liked');
 
+        // Floating +1 heart
         const heart = document.createElement('div');
         heart.classList.add('floating-heart');
         heart.innerHTML = '+1 ❤️‍🔥';
@@ -1715,6 +1741,7 @@ async function initializeLikeSystem() {
         document.body.appendChild(heart);
         setTimeout(() => heart.remove(), 1500);
 
+        // Ripple
         const ripple = document.createElement('span');
         ripple.classList.add('ripple');
         ripple.style.left = likeButton.offsetWidth/2 + 'px';
@@ -1722,64 +1749,66 @@ async function initializeLikeSystem() {
         likeButton.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
 
+        // Update Firebase
         try {
             await updateDoc(likesRef, { count: increment(1) });
             const updatedDoc = await getDoc(likesRef);
             if(updatedDoc.exists()) likeCount.textContent = formatNumber(updatedDoc.data().count || 0);
-        } catch(e){ console.error("Error updating likes:", e); }
+        } catch (error) { console.error("Error updating likes:", error); }
     });
 }
 
-// ScrollReveal
+// Scroll reveal
 function initializeScrollReveal() {
-    const sr = ScrollReveal({ origin:'top', distance:'60px', duration:2500, delay:400 });
+    const sr = ScrollReveal({ origin: 'top', distance: '60px', duration: 2500, delay: 400 });
     sr.reveal('.home__data');
-    sr.reveal('.home__social, .home__scroll',{delay:600, origin:'bottom'});
-    sr.reveal('.section__subtitle, .section__title',{origin:'left'});
-    sr.reveal('.about__img',{origin:'right'});
-    sr.reveal('.about__info',{delay:500});
-    sr.reveal('.about__description, .about__button-contact',{delay:600});
-    sr.reveal('.contact__content',{interval:100});
+    sr.reveal('.home__social, .home__scroll', {delay: 600, origin: 'bottom'});
+    sr.reveal('.section__subtitle, .section__title', {origin: 'left'});
+    sr.reveal('.about__img', {origin: 'right'});
+    sr.reveal('.about__info', {delay: 500});
+    sr.reveal('.about__description, .about__button-contact', {delay: 600});
+    sr.reveal('.contact__content', {interval: 100});
 }
 
-// Theme toggle
+// Theme
 function initializeTheme() {
     const themeButton = document.getElementById('theme-button');
+    if(!themeButton) return;
+
     document.body.classList.add('dark-theme');
     themeButton.classList.add('bx-sun');
 
     const savedTheme = localStorage.getItem('selected-theme');
-    if(savedTheme==='light'){
+    if(savedTheme==='light') {
         document.body.classList.remove('dark-theme');
         document.body.classList.add('light-theme');
         themeButton.classList.remove('bx-sun');
         themeButton.classList.add('bx-moon');
     }
 
-    themeButton.addEventListener('click', ()=>{
-        if(document.body.classList.contains('dark-theme')){
+    themeButton.addEventListener('click', () => {
+        if(document.body.classList.contains('dark-theme')) {
             document.body.classList.remove('dark-theme');
             document.body.classList.add('light-theme');
             themeButton.classList.remove('bx-sun');
             themeButton.classList.add('bx-moon');
-            localStorage.setItem('selected-theme','light');
-        }else{
+            localStorage.setItem('selected-theme', 'light');
+        } else {
             document.body.classList.remove('light-theme');
             document.body.classList.add('dark-theme');
             themeButton.classList.remove('bx-moon');
             themeButton.classList.add('bx-sun');
-            localStorage.setItem('selected-theme','dark');
+            localStorage.setItem('selected-theme', 'dark');
         }
     });
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded',()=>{
+// Init
+document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     loadProfile();
 });
 </script>
-
 
 
 </body>
