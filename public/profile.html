@@ -1810,118 +1810,114 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 <script>
-// Share button
-const shareButton = document.getElementById('share-button');
+(function(){
+  const shareButton = document.getElementById('share-button');
+  if (!shareButton) return;
 
-shareButton.addEventListener('click', async () => {
-    const profileName = document.getElementById('profile-name').textContent || 'My Website';
-    const profileImageSrc = document.getElementById('profile-image').src || 'https://via.placeholder.com/200';
-    const profileURL = window.location.href;
+  shareButton.addEventListener('click', async () => {
+    try {
+      const profileName = "{{NAME}}" || "My Site";
+      const profileImageSrc = document.getElementById('profile-image')?.src || 'https://via.placeholder.com/400';
+      const profileURL = window.location.href;
 
-    // Create modal
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position:fixed; top:0; left:0; width:100%; height:100%;
-        background: rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; z-index:9999;
-    `;
-    modal.innerHTML = `
-        <div style="background:#111; padding:20px; border-radius:20px; text-align:center; max-width:90%; width:350px; position:relative; color:#fff;">
-            <span id="close-modal" style="position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer;">&times;</span>
-            <h3>Preview</h3>
-            <canvas id="profileCanvas" style="margin:10px 0; width:100%; border-radius:20px;"></canvas>
-            <button id="download-image" style="margin-top:10px; padding:10px 14px; border-radius:8px;">Download Image</button>
-            <button id="share-image" style="margin-top:10px; padding:10px 14px; border-radius:8px;">Share Image</button>
+      // Create modal
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position:fixed;inset:0;background:rgba(0,0,0,.65);
+        display:flex;align-items:center;justify-content:center;z-index:9999;
+      `;
+      overlay.innerHTML = `
+        <div style="background:#111;color:#fff;border-radius:16px;padding:18px;width:92%;max-width:420px;text-align:center;position:relative;">
+          <div id="close-modal" style="position:absolute;right:12px;top:10px;font-size:22px;cursor:pointer;">&times;</div>
+          <h4>Preview</h4>
+          <canvas id="profileCanvas" style="width:100%;border-radius:12px;background:#000;margin:10px auto;"></canvas>
+          <button id="download-image" style="margin:8px;padding:10px 14px;border-radius:8px;">Download</button>
+          <button id="share-image" style="margin:8px;padding:10px 14px;border-radius:8px;background:#1db954;color:#fff;">Share</button>
         </div>
-    `;
-    document.body.appendChild(modal);
+      `;
+      document.body.appendChild(overlay);
+      document.getElementById('close-modal').onclick = () => overlay.remove();
+      overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
 
-    const closeModal = document.getElementById('close-modal');
-    closeModal.addEventListener('click', () => modal.remove());
-    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+      // Load QR library
+      if (!window.QRCode) {
+        await new Promise(res=>{
+          const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+          s.onload=res;
+          document.head.appendChild(s);
+        });
+      }
 
-    // Load QRCode lib if missing
-    if (!window.QRCode) {
-        const qrScript = document.createElement('script');
-        qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-        document.head.appendChild(qrScript);
-        await new Promise(resolve => qrScript.onload = resolve);
-    }
+      // Generate QR
+      const qrDiv = document.createElement('div'); qrDiv.style.display='none';
+      document.body.appendChild(qrDiv);
+      new QRCode(qrDiv, { text: profileURL, width:200, height:200 });
+      const qrImg = qrDiv.querySelector('img');
 
-    // Make QR
-    const qrDiv = document.createElement('div');
-    new QRCode(qrDiv, { text: profileURL, width: 120, height: 120 });
-    const qrImg = qrDiv.querySelector('img');
+      // Canvas setup
+      const canvas = document.getElementById('profileCanvas');
+      canvas.width = 600; canvas.height = 1000;
+      const ctx = canvas.getContext('2d');
 
-    // Canvas setup
-    const canvas = document.getElementById('profileCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 350;
-    canvas.height = 600;
+      // Gradient bg
+      const g = ctx.createLinearGradient(0,0,0,canvas.height);
+      g.addColorStop(0,'#1db954'); g.addColorStop(1,'#191414');
+      ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    // Background gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, "#1db954"); // Spotify green style
-    gradient.addColorStop(1, "#191414");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Top CTA
+      ctx.fillStyle='#fff';
+      ctx.font='28px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('✨ Visit My Site ✨', canvas.width/2, 50);
 
-    // Top CTA text
-    ctx.fillStyle = '#fff';
-    ctx.font = '18px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText("✨ Visit My Site ✨", canvas.width/2, 40);
-
-    // Profile image
-    const profileImg = new Image();
-    profileImg.crossOrigin = "Anonymous";
-    profileImg.src = profileImageSrc;
-    profileImg.onload = () => {
-        const imgSize = 180;
-        const imgX = canvas.width/2 - imgSize/2;
-        const imgY = 70;
+      // Profile image
+      const img = new Image(); img.crossOrigin="Anonymous"; img.src=profileImageSrc;
+      img.onload=()=>{
+        const size=220, x=canvas.width/2-size/2, y=100;
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(canvas.width/2, imgY + imgSize/2, imgSize/2, 0, Math.PI*2);
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(profileImg, imgX, imgY, imgSize, imgSize);
+        ctx.beginPath(); ctx.arc(canvas.width/2,y+size/2,size/2,0,Math.PI*2); ctx.closePath(); ctx.clip();
+        ctx.drawImage(img,x,y,size,size);
         ctx.restore();
 
-        // Name text
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px sans-serif';
-        ctx.fillText(profileName, canvas.width/2, imgY + imgSize + 40);
+        // Name + text
+        ctx.fillStyle='#fff'; ctx.font='bold 32px sans-serif';
+        ctx.fillText(profileName, canvas.width/2, y+size+60);
+        ctx.font='22px sans-serif';
+        ctx.fillText('Tap link or scan QR to visit 🚀', canvas.width/2, y+size+100);
 
-        // Subtext
-        ctx.font = '16px sans-serif';
-        ctx.fillText("Tap link to explore 🚀", canvas.width/2, imgY + imgSize + 70);
-
-        // QR code
-        if (qrImg) {
-            ctx.drawImage(qrImg, canvas.width/2 - 60, canvas.height - 160, 120, 120);
+        // QR
+        if(qrImg){
+          const q=new Image(); q.crossOrigin="Anonymous"; q.src=qrImg.src;
+          q.onload=()=> ctx.drawImage(q, canvas.width/2-100, canvas.height-250, 200,200);
         }
-    };
+      };
 
-    // Download
-    document.getElementById('download-image').addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = `${profileName}-share.png`;
+      // Download
+      document.getElementById('download-image').onclick=()=>{
+        const link=document.createElement('a');
+        link.href=canvas.toDataURL('image/png');
+        link.download=profileName.replace(/\s+/g,'_')+'.png';
         link.click();
-    });
+      };
 
-    // Share
-    document.getElementById('share-image').addEventListener('click', async () => {
-        if (navigator.canShare && navigator.canShare({ files: [] })) {
-            canvas.toBlob(blob => {
-                const file = new File([blob], `${profileName}-share.png`, { type: 'image/png' });
-                navigator.share({ files: [file], title: profileName, text: 'Check out my site!' })
-                .catch(err => alert('Share failed: ' + err));
-            });
-        } else {
-            alert('Sharing not supported. Download the image instead.');
-        }
-    });
-});
+      // Share
+      document.getElementById('share-image').onclick=()=>{
+        canvas.toBlob(async blob=>{
+          const file=new File([blob], profileName+'.png',{type:'image/png'});
+          if(navigator.canShare && navigator.canShare({files:[file]})){
+            await navigator.share({files:[file], title:profileName, text:'Check out my site!'})
+              .catch(err=>alert('Share failed: '+err));
+          } else if(navigator.share){
+            await navigator.share({title:profileName, text:'Visit my site', url:profileURL})
+              .catch(err=>alert('Share failed: '+err));
+          } else {
+            alert('Sharing not supported. Download instead.');
+          }
+        });
+      };
+
+    } catch(e){ console.error(e); alert('Error: '+e.message); }
+  });
+})();
 </script>
 </body>
