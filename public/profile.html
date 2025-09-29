@@ -1807,4 +1807,103 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
+
+<script>
+// Share modal elements
+const shareButton = document.getElementById('share-button');
+
+// Create modal container dynamically
+const shareModal = document.createElement('div');
+shareModal.id = 'share-modal';
+shareModal.style.cssText = `
+  display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:9999;
+`;
+shareModal.innerHTML = `
+  <div style="
+    background:#fff; padding:20px; border-radius:10px; text-align:center; width:300px; max-width:90%; position:relative;
+  ">
+    <span id="close-share-modal" style="position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer;">&times;</span>
+    <img id="share-profile-img" src="" alt="Profile" style="width:80px; height:80px; border-radius:50%; margin-bottom:10px;">
+    <h3>Share this profile</h3>
+    <div id="qrcode" style="margin:10px 0;"></div>
+    <button id="download-qr" style="margin-bottom:10px;">Download QR</button>
+    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;">
+      <a id="share-instagram" href="#" target="_blank" style="padding:5px 10px;background:#eee;border-radius:5px;">Instagram</a>
+      <a id="share-snapchat" href="#" target="_blank" style="padding:5px 10px;background:#eee;border-radius:5px;">Snapchat</a>
+      <a id="share-whatsapp" href="#" target="_blank" style="padding:5px 10px;background:#eee;border-radius:5px;">WhatsApp</a>
+      <a id="share-twitter" href="#" target="_blank" style="padding:5px 10px;background:#eee;border-radius:5px;">Twitter</a>
+      <button id="copy-link" style="padding:5px 10px;background:#eee;border-radius:5px;">Copy Link</button>
+    </div>
+  </div>
+`;
+
+// Append modal to body
+document.body.appendChild(shareModal);
+
+const closeModal = document.getElementById('close-share-modal');
+const shareProfileImg = document.getElementById('share-profile-img');
+const qrContainer = document.getElementById('qrcode');
+const downloadQR = document.getElementById('download-qr');
+const copyLink = document.getElementById('copy-link');
+
+// Include QRCode library dynamically if not already included
+if (!window.QRCode) {
+    const qrScript = document.createElement('script');
+    qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    document.head.appendChild(qrScript);
+}
+
+// Open modal on click
+shareButton.addEventListener('click', () => {
+    shareModal.style.display = 'flex';
+    const profileURL = window.location.href;
+
+    // Profile image
+    const profileImg = document.getElementById('profile-image');
+    shareProfileImg.src = profileImg.src || 'https://via.placeholder.com/80';
+
+    // Generate QR code after library is loaded
+    const generateQR = () => {
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, { text: profileURL, width: 128, height: 128 });
+    };
+
+    if (window.QRCode) {
+        generateQR();
+    } else {
+        qrScript.onload = generateQR;
+    }
+
+    // Update share links
+    document.getElementById('share-instagram').href = `https://www.instagram.com/?url=${encodeURIComponent(profileURL)}`;
+    document.getElementById('share-snapchat').href = `https://www.snapchat.com/add/?url=${encodeURIComponent(profileURL)}`;
+    document.getElementById('share-whatsapp').href = `https://wa.me/?text=${encodeURIComponent(profileURL)}`;
+    document.getElementById('share-twitter').href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(profileURL)}`;
+});
+
+// Close modal
+closeModal.addEventListener('click', () => shareModal.style.display = 'none');
+window.addEventListener('click', e => { if (e.target === shareModal) shareModal.style.display = 'none'; });
+
+// Copy profile link
+copyLink.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Profile link copied!');
+});
+
+// Download QR
+downloadQR.addEventListener('click', () => {
+    const img = qrContainer.querySelector('img');
+    if (img) {
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = 'profile-qr.png';
+        a.click();
+    }
+});
+
+
+</script>
+
 </body>
