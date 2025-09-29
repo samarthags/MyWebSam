@@ -1513,7 +1513,7 @@ body.light-theme {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getFirestore, collection, getDocs, query, where, doc, updateDoc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Firebase config
+// Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyBb3x_zD9JaFwL9PhmngCNZlS2fOh6MBa4",
     authDomain: "newai-52371.firebaseapp.com",
@@ -1526,24 +1526,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Globals
+// Global variables
 let currentProfileId = null;
 let currentUsername = null;
 let hasLiked = false;
 
-// Loading helpers
-function showLoading() { document.getElementById('loading').style.display = 'flex'; }
+// Show loading
+function showLoading() {
+    document.getElementById('loading').style.display = 'flex';
+}
+
+// Hide loading smoothly
 function hideLoading() {
     const loadingDiv = document.getElementById('loading');
     loadingDiv.style.opacity = '0';
     loadingDiv.style.transition = 'opacity 0.5s ease';
-    setTimeout(() => { loadingDiv.style.display = 'none'; }, 500);
+    setTimeout(() => {
+        loadingDiv.style.display = 'none';
+    }, 500);
 }
 
-// Format number
-function formatNumber(num) { return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+// Format numbers with commas
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
-// Get username from URL
+// Get username from URL path
 function getUsernameFromPath() {
     const path = window.location.pathname.substring(1);
     return path ? decodeURIComponent(path).toLowerCase() : null;
@@ -1553,18 +1561,19 @@ function getUsernameFromPath() {
 function updatePageMeta(profile) {
     document.title = `${profile.name} | MyPortfolio`;
     const metaDesc = document.querySelector('meta[name="description"]');
-    if(metaDesc) metaDesc.setAttribute('content', profile.bio || `Check out ${profile.name}'s profile`);
+    if (metaDesc) {
+        metaDesc.setAttribute('content', profile.bio || `Check out ${profile.name}'s profile`);
+    }
 }
 
-// Load profile
+// Load profile data
 async function loadProfile() {
     const username = getUsernameFromPath();
     currentUsername = username;
 
     if (!username) {
         hideLoading();
-        const intro = document.getElementById('intro-container');
-        if(intro) intro.style.display = 'block';
+        document.getElementById('intro-container').style.display = 'block';
         return;
     }
 
@@ -1583,16 +1592,11 @@ async function loadProfile() {
 
             hideLoading();
             setTimeout(() => {
-                const header = document.getElementById('header');
-                const main = document.getElementById('main');
-                const footer = document.getElementById('footer');
-                if(header) header.style.display = 'block';
-                if(main) main.style.display = 'block';
-                if(footer) footer.style.display = 'block';
-
+                document.getElementById('header').style.display = 'block';
+                document.getElementById('main').style.display = 'block';
+                document.getElementById('footer').style.display = 'block';
                 initializeScrollReveal();
             }, 500);
-
         } else {
             hideLoading();
             document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;color:white;"><h1>Profile not found</h1></div>';
@@ -1606,43 +1610,36 @@ async function loadProfile() {
 
 // Populate profile data
 function populateProfile(profile) {
-    const nameEl = document.getElementById('profile-name');
-    if(nameEl) nameEl.textContent = profile.name || 'Name';
+    document.getElementById('profile-name').textContent = profile.name || 'Name';
+    document.getElementById('profile-bio').textContent = profile.bio || 'Content Creator';
+    document.getElementById('nav-logo').textContent = profile.name || 'Profile';
 
-    const bioEl = document.getElementById('profile-bio');
-    if(bioEl) bioEl.textContent = profile.bio || 'Content Creator';
+    const profileImg = document.getElementById('profile-image');
+    profileImg.src = profile.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image';
+    profileImg.alt = profile.name || 'Profile Image';
 
-    const logoEl = document.getElementById('nav-logo');
-    if(logoEl) logoEl.textContent = profile.name || 'Profile';
-
-    const imgEl = document.getElementById('profile-image');
-    if(imgEl) {
-        imgEl.src = profile.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image';
-        imgEl.alt = profile.name || 'Profile Image';
+    // Update About section
+    const aboutDesc = document.querySelector('.about__description');
+    if (aboutDesc) {
+        const formattedBirthday = profile.birthday
+            ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+            : 'Not specified';
+        aboutDesc.innerHTML = `
+            Hi, I'm <strong>${profile.name || 'Name'}</strong>.  
+            I was born on <strong>${formattedBirthday}</strong> and I’m from <strong>${profile.location || 'Not specified'}</strong>.  
+            I enjoy learning new things, working on creative projects, and always looking for ways to grow.
+        `;
     }
-
-    const locationEl = document.getElementById('location-display');
-    if(locationEl) locationEl.textContent = profile.location || 'Not specified';
-
-    const birthdayEl = document.getElementById('birthday-display');
-    if(birthdayEl) {
-        birthdayEl.textContent = profile.birthday ? new Date(profile.birthday).toLocaleDateString('en-US', {month:'long', day:'numeric'}) : 'Not specified';
-    }
-
-    // Hide main CTA (YouTube removed)
-    const mainCta = document.getElementById('main-cta');
-    if(mainCta) mainCta.style.display = 'none';
 
     populateSocialLinks(profile);
     populateContactCards(profile);
 }
 
-// Populate social links (first 3)
+// Populate social links (home section)
 function populateSocialLinks(profile) {
     const socialContainer = document.getElementById('social-links');
-    if(!socialContainer) return;
-
     let socialHTML = '';
+
     const socialPlatforms = {
         instagram: { url: `https://www.instagram.com/${profile.instagram}`, icon: 'bxl-instagram' },
         snapchat: { url: `https://www.snapchat.com/add/${profile.snapchat}`, icon: 'bxl-snapchat' },
@@ -1654,11 +1651,11 @@ function populateSocialLinks(profile) {
         whatsapp: { url: `https://wa.me/${profile.whatsapp}`, icon: 'bxl-whatsapp' }
     };
 
-    let count = 0;
+    let homeCount = 0;
     Object.entries(socialPlatforms).forEach(([platform, config]) => {
-        if(profile[platform] && count < 3) {
+        if (profile[platform] && homeCount < 3) {
             socialHTML += `<a href="${config.url}" target="_blank" class="home__social-link"><i class='bx ${config.icon}'></i></a>`;
-            count++;
+            homeCount++;
         }
     });
 
@@ -1668,142 +1665,136 @@ function populateSocialLinks(profile) {
 // Populate contact cards
 function populateContactCards(profile) {
     const contactContainer = document.getElementById('contact-cards');
-    if(!contactContainer) return;
-
     let contactHTML = '';
 
-    const fields = [
-        { key: 'instagram', label: 'Instagram', urlPrefix: 'https://www.instagram.com/', buttonText: 'Follow', icon: 'bxl-instagram' },
-        { key: 'snapchat', label: 'Snapchat', urlPrefix: 'https://www.snapchat.com/add/', buttonText: 'Add Me', icon: 'bxl-snapchat' },
-        { key: 'twitter', label: 'Twitter', urlPrefix: 'https://twitter.com/', buttonText: 'Follow', icon: 'bxl-twitter' },
-        { key: 'facebook', label: 'Facebook', urlPrefix: 'https://facebook.com/', buttonText: 'Follow', icon: 'bxl-facebook' },
-        { key: 'linkedin', label: 'LinkedIn', urlPrefix: 'https://linkedin.com/in/', buttonText: 'Connect', icon: 'bxl-linkedin' },
-        { key: 'github', label: 'GitHub', urlPrefix: 'https://github.com/', buttonText: 'Follow', icon: 'bxl-github' },
-        { key: 'telegram', label: 'Telegram', urlPrefix: 'https://t.me/', buttonText: 'Message', icon: 'bxl-telegram' },
-        { key: 'whatsapp', label: 'WhatsApp', urlPrefix: 'https://wa.me/', buttonText: 'Message', icon: 'bxl-whatsapp' },
-        { key: 'email', label: 'Email', urlPrefix: 'mailto:', buttonText: 'Email Me', icon: 'bxs-envelope' }
-    ];
+    const addCard = (icon, title, data, url, buttonText) => {
+        contactHTML += `
+            <div class="contact__card">
+                <i class='bx ${icon} contact__card-icon'></i>
+                <h3 class="contact__card-title">${title}</h3>
+                <span class="contact__card-data">${data}</span>
+                <a href="${url}" target="_blank" class="contact__button">
+                    ${buttonText} <i class='bx bx-right-arrow-alt'></i>
+                </a>
+            </div>
+        `;
+    };
 
-    fields.forEach(f => {
-        if(profile[f.key]) {
-            contactHTML += `
-                <div class="contact__card ${f.key==='email'?'contact__card-email':''}">
-                    <i class='bx ${f.icon} contact__card-icon'></i>
-                    <h3 class="contact__card-title">${f.label}</h3>
-                    <span class="contact__card-data">${f.key==='email'?profile[f.key]:'@'+profile[f.key]}</span>
-                    <a href="${f.urlPrefix}${profile[f.key]}" target="_blank" class="contact__button">
-                        ${f.buttonText} <i class='bx bx-right-arrow-alt'></i>
-                    </a>
-                </div>
-            `;
-        }
-    });
+    if (profile.instagram) addCard('bxl-instagram', 'Instagram', `@${profile.instagram}`, `https://www.instagram.com/${profile.instagram}`, 'Follow');
+    if (profile.snapchat) addCard('bxl-snapchat', 'Snapchat', `@${profile.snapchat}`, `https://www.snapchat.com/add/${profile.snapchat}`, 'Add Me');
+    if (profile.twitter) addCard('bxl-twitter', 'Twitter', `@${profile.twitter}`, `https://twitter.com/${profile.twitter}`, 'Follow');
+    if (profile.facebook) addCard('bxl-facebook', 'Facebook', profile.facebook, `https://facebook.com/${profile.facebook}`, 'Follow');
+    if (profile.linkedin) addCard('bxl-linkedin', 'LinkedIn', profile.linkedin, `https://linkedin.com/in/${profile.linkedin}`, 'Connect');
+    if (profile.github) addCard('bxl-github', 'GitHub', `@${profile.github}`, `https://github.com/${profile.github}`, 'Follow');
+    if (profile.telegram) addCard('bxl-telegram', 'Telegram', `@${profile.telegram}`, `https://t.me/${profile.telegram}`, 'Message');
+    if (profile.whatsapp) addCard('bxl-whatsapp', 'WhatsApp', profile.whatsapp, `https://wa.me/${profile.whatsapp}`, 'Message');
+    if (profile.email) addCard('bxs-envelope', 'Email', profile.email, `mailto:${profile.email}`, 'Email Me');
 
     contactContainer.innerHTML = contactHTML;
 }
 
-// Like system
+// Initialize like system (+1)
 async function initializeLikeSystem() {
-    if(!currentProfileId) return;
+    if (!currentProfileId) return;
 
     const likeButton = document.getElementById('likeButton');
     const likeCount = document.getElementById('likeCount');
-    if(!likeButton || !likeCount) return;
 
     const likesRef = doc(db, "profileLikes", currentProfileId);
     let likesDoc = await getDoc(likesRef);
-    if(!likesDoc.exists()) {
+
+    if (!likesDoc.exists()) {
         await setDoc(likesRef, { count: 0, profileId: currentProfileId, username: currentUsername });
         likesDoc = await getDoc(likesRef);
     }
 
-    const likesData = likesDoc.data();
-    likeCount.textContent = formatNumber(likesData.count || 0);
+    likeCount.textContent = formatNumber(likesDoc.data().count || 0);
 
     const userLikeKey = `liked_${currentUsername}_${currentProfileId}`;
     hasLiked = localStorage.getItem(userLikeKey) === 'true';
-    if(hasLiked) likeButton.classList.add('button--liked');
+
+    if (hasLiked) likeButton.classList.add('button--liked');
 
     likeButton.addEventListener('click', async () => {
-        if(hasLiked) return; // ignore repeated likes
+        if (hasLiked) {
+            likeButton.classList.add('shake');
+            setTimeout(() => likeButton.classList.remove('shake'), 500);
+            return;
+        }
 
         hasLiked = true;
         localStorage.setItem(userLikeKey, 'true');
         likeButton.classList.add('button--liked');
 
-        // Floating +1 heart
         const heart = document.createElement('div');
         heart.classList.add('floating-heart');
         heart.innerHTML = '+1 ❤️‍🔥';
         heart.style.position = 'absolute';
-        heart.style.left = likeButton.offsetLeft + likeButton.offsetWidth/2 + 'px';
+        heart.style.left = likeButton.offsetLeft + likeButton.offsetWidth / 2 + 'px';
         heart.style.top = likeButton.offsetTop + 'px';
         document.body.appendChild(heart);
         setTimeout(() => heart.remove(), 1500);
 
-        // Ripple
         const ripple = document.createElement('span');
         ripple.classList.add('ripple');
-        ripple.style.left = likeButton.offsetWidth/2 + 'px';
-        ripple.style.top = likeButton.offsetHeight/2 + 'px';
+        ripple.style.left = likeButton.offsetWidth / 2 + 'px';
+        ripple.style.top = likeButton.offsetHeight / 2 + 'px';
         likeButton.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
 
-        // Update Firebase
         try {
             await updateDoc(likesRef, { count: increment(1) });
             const updatedDoc = await getDoc(likesRef);
-            if(updatedDoc.exists()) likeCount.textContent = formatNumber(updatedDoc.data().count || 0);
-        } catch (error) { console.error("Error updating likes:", error); }
+            if (updatedDoc.exists()) likeCount.textContent = formatNumber(updatedDoc.data().count || 0);
+        } catch (error) {
+            console.error("Error updating likes:", error);
+        }
     });
 }
 
-// Scroll reveal
+// ScrollReveal animations
 function initializeScrollReveal() {
-    const sr = ScrollReveal({ origin: 'top', distance: '60px', duration: 2500, delay: 400 });
+    const sr = ScrollReveal({
+        origin: 'top',
+        distance: '60px',
+        duration: 2500,
+        delay: 400,
+    });
+
     sr.reveal('.home__data');
-    sr.reveal('.home__social, .home__scroll', {delay: 600, origin: 'bottom'});
-    sr.reveal('.section__subtitle, .section__title', {origin: 'left'});
-    sr.reveal('.about__img', {origin: 'right'});
-    sr.reveal('.about__info', {delay: 500});
-    sr.reveal('.about__description, .about__button-contact', {delay: 600});
-    sr.reveal('.contact__content', {interval: 100});
+    sr.reveal('.home__social, .home__scroll', { delay: 600, origin: 'bottom' });
+    sr.reveal('.section__subtitle, .section__title', { origin: 'left' });
+    sr.reveal('.about__img', { origin: 'right' });
+    sr.reveal('.about__description', { delay: 600 });
+    sr.reveal('.contact__content', { interval: 100 });
 }
 
-// Theme
+// Theme toggle
 function initializeTheme() {
     const themeButton = document.getElementById('theme-button');
-    if(!themeButton) return;
-
     document.body.classList.add('dark-theme');
     themeButton.classList.add('bx-sun');
 
     const savedTheme = localStorage.getItem('selected-theme');
-    if(savedTheme==='light') {
-        document.body.classList.remove('dark-theme');
-        document.body.classList.add('light-theme');
-        themeButton.classList.remove('bx-sun');
-        themeButton.classList.add('bx-moon');
+    if (savedTheme === 'light') {
+        document.body.classList.replace('dark-theme', 'light-theme');
+        themeButton.classList.replace('bx-sun', 'bx-moon');
     }
 
     themeButton.addEventListener('click', () => {
-        if(document.body.classList.contains('dark-theme')) {
-            document.body.classList.remove('dark-theme');
-            document.body.classList.add('light-theme');
-            themeButton.classList.remove('bx-sun');
-            themeButton.classList.add('bx-moon');
+        if (document.body.classList.contains('dark-theme')) {
+            document.body.classList.replace('dark-theme', 'light-theme');
+            themeButton.classList.replace('bx-sun', 'bx-moon');
             localStorage.setItem('selected-theme', 'light');
         } else {
-            document.body.classList.remove('light-theme');
-            document.body.classList.add('dark-theme');
-            themeButton.classList.remove('bx-moon');
-            themeButton.classList.add('bx-sun');
+            document.body.classList.replace('light-theme', 'dark-theme');
+            themeButton.classList.replace('bx-moon', 'bx-sun');
             localStorage.setItem('selected-theme', 'dark');
         }
     });
 }
 
-// Init
+// Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     loadProfile();
