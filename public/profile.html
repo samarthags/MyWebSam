@@ -161,30 +161,24 @@ button {
 
 #profile-name {
   display: inline-block;
-  animation: rubberBand 2s ease-in-out infinite;
+  animation: tada 3.5s ease-in-out infinite;
 }
 
-@keyframes rubberBand {
+@keyframes tada {
   0% {
-    transform: scaleX(1) scaleY(1);
+    transform: scale(1) rotate(0deg);
   }
-  30% {
-    transform: scaleX(1.25) scaleY(0.75);
+  10%, 20% {
+    transform: scale(0.9) rotate(-3deg);
   }
-  40% {
-    transform: scaleX(0.75) scaleY(1.25);
+  30%, 50%, 70%, 90% {
+    transform: scale(1.1) rotate(3deg);
   }
-  50% {
-    transform: scaleX(1.15) scaleY(0.85);
-  }
-  65% {
-    transform: scaleX(0.95) scaleY(1.05);
-  }
-  75% {
-    transform: scaleX(1.05) scaleY(0.95);
+  40%, 60%, 80% {
+    transform: scale(1.1) rotate(-3deg);
   }
   100% {
-    transform: scaleX(1) scaleY(1);
+    transform: scale(1) rotate(0deg);
   }
 }
 
