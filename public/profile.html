@@ -162,14 +162,19 @@ button {
 
 
 #profile-name {
+  /* Keep existing layout and size */
+  font-size: var(--biggest-font-size);
+  color: var(--first-color);
+  font-weight: var(--font-semibold);
+  line-height: 1; /* keep original line spacing */
+  
+  /* Only for animation */
   display: inline-block;
   transform-origin: center;
-  animation: rubberBand 3s ease-in-out infinite;
-  font-size: inherit;   /* keep existing font size */
-  font-weight: inherit; /* keep existing font weight */
+  animation: rubberBandLoop 3s ease-in-out infinite;
 }
 
-@keyframes rubberBand {
+@keyframes rubberBandLoop {
   0% {
     transform: scale(1);
   }
