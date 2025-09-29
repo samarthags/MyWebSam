@@ -163,33 +163,22 @@ button {
 
 
 #profile-bio {
-  font-family: monospace;
-  font-size: 1.5rem;
-  white-space: nowrap;
-  overflow: hidden;
-  border-right: 2px solid #fff; /* cursor effect */
   display: inline-block;
-  animation: typing 4s steps(20) infinite, blink 0.75s step-end infinite;
+  font-size: inherit;      /* keep current font size */
+  font-weight: inherit;    /* keep current font weight */
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUp 1s ease forwards;
 }
 
-@keyframes typing {
-  0%, 10% {
-    width: 0;
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  50% {
-    width: 100%;
-  }
-  60%, 100% {
-    width: 0;
-  }
-}
-
-@keyframes blink {
-  0%, 50%, 100% {
-    border-color: transparent;
-  }
-  25%, 75% {
-    border-color: #fff;
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
