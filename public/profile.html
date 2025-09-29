@@ -160,29 +160,30 @@ button {
 
 
 
-#profile-name {
-  display: inline-block;       /* keep original placement */
-  transform-origin: center;    /* pivot from center */
-  animation: rubberBandLoop 3.5s ease-in-out infinite; /* repeat every 3.5s */
-  font-size: inherit;          /* keep original font size */
-  font-weight: inherit;        /* keep original weight */
+#profile-bio {
+  display: inline-block;
+  font-size: inherit;      /* keep current font size */
+  font-weight: inherit;    /* keep current font weight */
+  opacity: 0;
+  animation: fadeLoop 4s ease-in-out infinite;
 }
 
-@keyframes rubberBandLoop {
-  0%, 100% {
-    transform: translateX(0) translateY(0);
+@keyframes fadeLoop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  20% {
-    transform: translateX(-2px);
+  10% {
+    opacity: 1;
+    transform: translateY(0);
   }
-  40% {
-    transform: translateX(2px);
+  90% {
+    opacity: 1;
+    transform: translateY(0);
   }
-  60% {
-    transform: translateX(-1px);
-  }
-  80% {
-    transform: translateX(1px);
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 }
 
