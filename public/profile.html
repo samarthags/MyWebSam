@@ -1810,13 +1810,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 document.getElementById("share-button").addEventListener("click", async () => {
-  const shareURL = window.location.href; // actual current page URL
+  const shareURL = window.location.href;   // actual current page URL
+  const shareTitle = document.title;       // auto-detect page title
 
   if (navigator.share) {
     try {
       await navigator.share({
-        title: "Visit my portfolio website",
-        text: shareURL,
+        title: shareTitle,
+        text: "Check out my portfolio 🚀",
         url: shareURL
       });
     } catch (err) {
