@@ -1837,9 +1837,9 @@ function startTypingAnimation(bios) {
     const bioElement = document.getElementById('profile-bio');
     let bioIndex = 0;
     let charIndex = 0;
-    const typingDelay = 100;  // milliseconds per character
-    const erasingDelay = 50;  // milliseconds per character when deleting
-    const newBioDelay = 2000; // wait before next bio
+    const typingDelay = 100;
+    const erasingDelay = 50;
+    const newBioDelay = 2000;
 
     function type() {
         if (charIndex < bios[bioIndex].length) {
@@ -1857,7 +1857,7 @@ function startTypingAnimation(bios) {
             charIndex--;
             setTimeout(erase, erasingDelay);
         } else {
-            bioIndex = (bioIndex + 1) % bios.length; // loop through bios
+            bioIndex = (bioIndex + 1) % bios.length;
             setTimeout(type, typingDelay);
         }
     }
@@ -1865,11 +1865,11 @@ function startTypingAnimation(bios) {
     if (bios.length > 0) type();
 }
 
-// Call this after your profile is loaded
+// Call this function **after the profile is loaded**
 function initBioTyping(profile) {
     let biosArray = [];
 
-    // If profile has multiple bios, use them; otherwise, just the single bio
+    // Check for multiple bios, otherwise use the main bio
     if (profile.additionalBios && profile.additionalBios.length > 0) {
         biosArray = [profile.bio, ...profile.additionalBios];
     } else {
@@ -1879,7 +1879,8 @@ function initBioTyping(profile) {
     startTypingAnimation(biosArray);
 }
 
-// Example: after populateProfile(profile)
+// ---- Hook this into your existing code ----
+// After you populate the profile data from Firebase:
 populateProfile(profile);
 initBioTyping(profile);
 </script>
