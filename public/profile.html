@@ -160,6 +160,39 @@ button {
 
 
 
+#profile-name {
+  display: inline-block;
+  animation: rubberBand 2s ease-in-out infinite;
+}
+
+@keyframes rubberBand {
+  0% {
+    transform: scaleX(1) scaleY(1);
+  }
+  30% {
+    transform: scaleX(1.25) scaleY(0.75);
+  }
+  40% {
+    transform: scaleX(0.75) scaleY(1.25);
+  }
+  50% {
+    transform: scaleX(1.15) scaleY(0.85);
+  }
+  65% {
+    transform: scaleX(0.95) scaleY(1.05);
+  }
+  75% {
+    transform: scaleX(1.05) scaleY(0.95);
+  }
+  100% {
+    transform: scaleX(1) scaleY(1);
+  }
+}
+
+
+
+
+
 
 
 #profile-bio {
