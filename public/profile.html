@@ -1508,199 +1508,140 @@ body.light-theme {
     <!--=============== SCROLLREVEAL ===============-->
     <script src="https://unpkg.com/scrollreveal"></script>
 
-    <!--=============== FIREBASE & MAIN JS ===============-->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, doc, updateDoc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBb3x_zD9JaFwL9PhmngCNZlS2fOh6MBa4",
-            authDomain: "newai-52371.firebaseapp.com",
-            projectId: "newai-52371",
-            storageBucket: "newai-52371.appspot.com",
-            messagingSenderId: "480586908639",
-            appId: "1:480586908639:web:f4645a852c4df724c6fa6a"
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, doc, updateDoc, getDoc, setDoc, increment } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBb3x_zD9JaFwL9PhmngCNZlS2fOh6MBa4",
+        authDomain: "newai-52371.firebaseapp.com",
+        projectId: "newai-52371",
+        storageBucket: "newai-52371.appspot.com",
+        messagingSenderId: "480586908639",
+        appId: "1:480586908639:web:f4645a852c4df724c6fa6a"
+    };
 
-        // Global variables
-        let currentProfileId = null;
-        let currentUsername = null;
-        let hasLiked = false;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // Show loading
-        function showLoading() {
-            document.getElementById('loading').style.display = 'flex';
+    // Global variables
+    let currentProfileId = null;
+    let currentUsername = null;
+    let hasLiked = false;
+
+    // Show loading
+    function showLoading() {
+        document.getElementById('loading').style.display = 'flex';
+    }
+
+    // Hide loading with smooth transition
+    function hideLoading() {
+        const loadingDiv = document.getElementById('loading');
+        loadingDiv.style.opacity = '0';
+        loadingDiv.style.transition = 'opacity 0.5s ease';
+
+        setTimeout(() => {
+            loadingDiv.style.display = 'none';
+        }, 500);
+    }
+
+    // Format numbers with commas
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Get username from URL path
+    function getUsernameFromPath() {
+        const path = window.location.pathname.substring(1);
+        return path ? decodeURIComponent(path).toLowerCase() : null;
+    }
+
+    // Update page SEO and meta tags
+    function updatePageMeta(profile) {
+        document.title = `${profile.name} | MyPortfolio`;
+
+        // Update meta description
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+            metaDesc.setAttribute('content', profile.bio || `Check out ${profile.name}'s profile`);
+        }
+    }
+
+    // Load profile data
+    async function loadProfile() {
+        const username = getUsernameFromPath();
+        currentUsername = username;
+
+        if (!username) {
+            // Show intro page
+            hideLoading();
+            document.getElementById('intro-container').style.display = 'block';
+            return;
         }
 
-        // Hide loading with smooth transition
-        function hideLoading() {
-            const loadingDiv = document.getElementById('loading');
-            loadingDiv.style.opacity = '0';
-            loadingDiv.style.transition = 'opacity 0.5s ease';
-            
-            setTimeout(() => {
-                loadingDiv.style.display = 'none';
-            }, 500);
-        }
+        try {
+            // Query for profile by username
+            const q = query(collection(db, "profiles"), where("username", "==", username));
+            const querySnapshot = await getDocs(q);
 
-        // Format numbers with commas
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
+            if (!querySnapshot.empty) {
+                const profileDoc = querySnapshot.docs[0];
+                const profile = profileDoc.data();
+                currentProfileId = profileDoc.id;
 
-        // Get username from URL path
-        function getUsernameFromPath() {
-            const path = window.location.pathname.substring(1);
-            return path ? decodeURIComponent(path).toLowerCase() : null;
-        }
+                // Update page meta
+                updatePageMeta(profile);
 
-        // Update page SEO and meta tags
-        function updatePageMeta(profile) {
-            document.title = `${profile.name} | MyPortfolio`;
-            
-            // Update meta description
-            const metaDesc = document.querySelector('meta[name="description"]');
-            if (metaDesc) {
-                metaDesc.setAttribute('content', profile.bio || `Check out ${profile.name}'s profile`);
-            }
-        }
+                // Populate profile data
+                populateProfile(profile);
 
-        // Initialize streak system (global daily visits)
-        async function initializeStreakSystem() {
-            if (!currentProfileId) return;
+                // Initialize systems
+                await initializeLikeSystem();
 
-            const today = new Date().toDateString(); // e.g., "Mon Dec 25 2023"
-
-            try {
-                const streakRef = doc(db, "profileStreaks", currentProfileId);
-                const streakDoc = await getDoc(streakRef);
-
-                if (streakDoc.exists()) {
-                    const streakData = streakDoc.data();
-                    const lastUpdateDate = streakData.lastUpdate;
-                    let currentStreak = streakData.currentStreak || 0;
-
-                    // Check if this is a new day
-                    if (lastUpdateDate !== today) {
-                        const lastDate = new Date(lastUpdateDate);
-                        const todayDate = new Date(today);
-                        const timeDiff = todayDate.getTime() - lastDate.getTime();
-                        const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-                        if (daysDiff === 1) {
-                            // Consecutive day - increment streak
-                            currentStreak += 1;
-                        } else if (daysDiff > 1) {
-                            // Streak broken - reset to 1
-                            currentStreak = 1;
-                        }
-
-                        // Update Firebase with new streak and today's date
-                        await updateDoc(streakRef, {
-                            currentStreak: currentStreak,
-                            lastUpdate: today,
-                            maxStreak: currentStreak > (streakData.maxStreak || 0) ? currentStreak : streakData.maxStreak || currentStreak
-                        });
-                    }
-
-                    // Display current streak
-                    document.getElementById('streak-display').textContent = currentStreak;
-
-                } else {
-                    // First time - create streak record
-                    await setDoc(streakRef, {
-                        currentStreak: 1,
-                        maxStreak: 1,
-                        lastUpdate: today,
-                        profileId: currentProfileId,
-                        username: currentUsername
-                    });
-
-                    document.getElementById('streak-display').textContent = '1';
-                }
-
-            } catch (error) {
-                console.error("Error handling streak system:", error);
-                document.getElementById('streak-display').textContent = '0';
-            }
-        }
-
-        // Load profile data
-        async function loadProfile() {
-            const username = getUsernameFromPath();
-            currentUsername = username;
-
-            if (!username) {
-                // Show intro page
+                // Show main content with smooth transition
                 hideLoading();
-                document.getElementById('intro-container').style.display = 'block';
-                return;
-            }
 
-            try {
-                // Query for profile by username
-                const q = query(collection(db, "profiles"), where("username", "==", username));
-                const querySnapshot = await getDocs(q);
+                setTimeout(() => {
+                    document.getElementById('header').style.display = 'block';
+                    document.getElementById('main').style.display = 'block';
+                    document.getElementById('footer').style.display = 'block';
 
-                if (!querySnapshot.empty) {
-                    const profileDoc = querySnapshot.docs[0];
-                    const profile = profileDoc.data();
-                    currentProfileId = profileDoc.id;
+                    // Initialize scroll reveal after content is shown
+                    initializeScrollReveal();
+                }, 500);
 
-                    // Update page meta
-                    updatePageMeta(profile);
-
-                    // Populate profile data
-                    populateProfile(profile);
-
-                    // Initialize systems
-                    await initializeStreakSystem();
-                    await initializeLikeSystem();
-
-                    // Show main content with smooth transition
-                    hideLoading();
-                    
-                    setTimeout(() => {
-                        document.getElementById('header').style.display = 'block';
-                        document.getElementById('main').style.display = 'block';
-                        document.getElementById('footer').style.display = 'block';
-                        
-                        // Initialize scroll reveal after content is shown
-                        initializeScrollReveal();
-                    }, 500);
-
-                } else {
-                    // Profile not found
-                    hideLoading();
-                    // You can add a not-found page here
-                    document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: white;"><h1>Profile not found</h1></div>';
-                }
-            } catch (error) {
-                console.error("Error loading profile:", error);
+            } else {
+                // Profile not found
                 hideLoading();
-                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: white;"><h1>Error loading profile</h1></div>';
+                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: white;"><h1>Profile not found</h1></div>';
             }
+        } catch (error) {
+            console.error("Error loading profile:", error);
+            hideLoading();
+            document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; color: white;"><h1>Error loading profile</h1></div>';
         }
+    }
 
-        // Populate profile data
-        function populateProfile(profile) {
-            document.getElementById('profile-name').textContent = profile.name || 'Name';
-            document.getElementById('profile-bio').textContent = profile.bio || 'Content Creator';
-            document.getElementById('nav-logo').textContent = profile.name || 'Profile';
+    // Populate profile data
+    function populateProfile(profile) {
+        document.getElementById('profile-name').textContent = profile.name || 'Name';
+        document.getElementById('profile-bio').textContent = profile.bio || 'Content Creator';
+        document.getElementById('nav-logo').textContent = profile.name || 'Profile';
 
-            // Profile image
-            const profileImg = document.getElementById('profile-image');
-            profileImg.src = profile.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image';
-            profileImg.alt = profile.name || 'Profile Image';
+        // Profile image
+        const profileImg = document.getElementById('profile-image');
+        profileImg.src = profile.imageUrl || 'https://via.placeholder.com/300x300?text=No+Image';
+        profileImg.alt = profile.name || 'Profile Image';
 
-            // Stats
+        // Location
+        if (document.getElementById('location-display')) {
             document.getElementById('location-display').textContent = profile.location || 'Not specified';
+        }
 
-            // Format birthday (month and day only)
+        // Birthday (formatted)
+        if (document.getElementById('birthday-display')) {
             if (profile.birthday) {
                 const birthday = new Date(profile.birthday);
                 const formattedBirthday = birthday.toLocaleDateString('en-US', { 
@@ -1711,361 +1652,265 @@ body.light-theme {
             } else {
                 document.getElementById('birthday-display').textContent = 'Not specified';
             }
-
-            // Set default streak while loading
-            document.getElementById('streak-display').textContent = '0';
-
-            // Main CTA
-            const mainCta = document.getElementById('main-cta');
-            if (profile.youtubeChannel) {
-                mainCta.href = `https://www.youtube.com/${profile.youtubeChannel}?sub_confirmation=1`;
-                mainCta.innerHTML = 'Subscribe on YouTube <i class="bx bxl-youtube"></i>';
-            } else {
-                mainCta.style.display = 'none';
-            }
-
-            // Social links
-            populateSocialLinks(profile);
-            populateContactCards(profile);
         }
 
-        // Populate social links (only first 3 for home section)
-        function populateSocialLinks(profile) {
-            const socialContainer = document.getElementById('social-links');
+        // Social links + contacts
+        populateSocialLinks(profile);
+        populateContactCards(profile);
+    }
 
-            let socialHTML = '';
+    // Populate social links (only first 3 for home section)
+    function populateSocialLinks(profile) {
+        const socialContainer = document.getElementById('social-links');
+        let socialHTML = '';
 
-            const socialPlatforms = {
-                instagram: { url: `https://www.instagram.com/${profile.instagram}`, icon: 'bxl-instagram' },
-                snapchat: { url: `https://www.snapchat.com/add/${profile.snapchat}`, icon: 'bxl-snapchat' },
-                youtube: { url: `https://www.youtube.com/${profile.youtubeChannel}`, icon: 'bxl-youtube' },
-                twitter: { url: `https://twitter.com/${profile.twitter}`, icon: 'bxl-twitter' },
-                facebook: { url: `https://facebook.com/${profile.facebook}`, icon: 'bxl-facebook' },
-                linkedin: { url: `https://linkedin.com/in/${profile.linkedin}`, icon: 'bxl-linkedin' },
-                github: { url: `https://github.com/${profile.github}`, icon: 'bxl-github' },
-                telegram: { url: `https://t.me/${profile.telegram}`, icon: 'bxl-telegram' },
-                whatsapp: { url: `https://wa.me/${profile.whatsapp}`, icon: 'bxl-whatsapp' }
-            };
+        const socialPlatforms = {
+            instagram: { url: `https://www.instagram.com/${profile.instagram}`, icon: 'bxl-instagram' },
+            snapchat: { url: `https://www.snapchat.com/add/${profile.snapchat}`, icon: 'bxl-snapchat' },
+            youtube: { url: `https://www.youtube.com/${profile.youtubeChannel}`, icon: 'bxl-youtube' },
+            twitter: { url: `https://twitter.com/${profile.twitter}`, icon: 'bxl-twitter' },
+            facebook: { url: `https://facebook.com/${profile.facebook}`, icon: 'bxl-facebook' },
+            linkedin: { url: `https://linkedin.com/in/${profile.linkedin}`, icon: 'bxl-linkedin' },
+            github: { url: `https://github.com/${profile.github}`, icon: 'bxl-github' },
+            telegram: { url: `https://t.me/${profile.telegram}`, icon: 'bxl-telegram' },
+            whatsapp: { url: `https://wa.me/${profile.whatsapp}`, icon: 'bxl-whatsapp' }
+        };
 
-            // For home section - only show first 3 social links
-            let homeCount = 0;
-            Object.entries(socialPlatforms).forEach(([platform, config]) => {
-                if (profile[platform]) {
-                    // Add to home section (only first 3)
-                    if (homeCount < 3) {
-                        socialHTML += `<a href="${config.url}" target="_blank" class="home__social-link"><i class='bx ${config.icon}'></i></a>`;
-                        homeCount++;
-                    }
+        let homeCount = 0;
+        Object.entries(socialPlatforms).forEach(([platform, config]) => {
+            if (profile[platform]) {
+                if (homeCount < 3) {
+                    socialHTML += `<a href="${config.url}" target="_blank" class="home__social-link"><i class='bx ${config.icon}'></i></a>`;
+                    homeCount++;
                 }
+            }
+        });
+
+        socialContainer.innerHTML = socialHTML;
+    }
+
+    // Populate contact cards (all socials)
+    function populateContactCards(profile) {
+        const contactContainer = document.getElementById('contact-cards');
+        let contactHTML = '';
+
+        if (profile.instagram) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-instagram contact__card-icon'></i>
+                    <h3 class="contact__card-title">Instagram</h3>
+                    <span class="contact__card-data">@${profile.instagram}</span>
+                    <a href="https://www.instagram.com/${profile.instagram}" target="_blank" class="contact__button">
+                        Follow <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.snapchat) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-snapchat contact__card-icon'></i>
+                    <h3 class="contact__card-title">Snapchat</h3>
+                    <span class="contact__card-data">@${profile.snapchat}</span>
+                    <a href="https://www.snapchat.com/add/${profile.snapchat}" target="_blank" class="contact__button">
+                        Add Me <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.whatsapp) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-whatsapp contact__card-icon'></i>
+                    <h3 class="contact__card-title">WhatsApp</h3>
+                    <span class="contact__card-data">${profile.whatsapp}</span>
+                    <a href="https://wa.me/${profile.whatsapp}" target="_blank" class="contact__button">
+                        Message <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.telegram) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-telegram contact__card-icon'></i>
+                    <h3 class="contact__card-title">Telegram</h3>
+                    <span class="contact__card-data">@${profile.telegram}</span>
+                    <a href="https://t.me/${profile.telegram}" target="_blank" class="contact__button">
+                        Message <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.twitter) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-twitter contact__card-icon'></i>
+                    <h3 class="contact__card-title">Twitter</h3>
+                    <span class="contact__card-data">@${profile.twitter}</span>
+                    <a href="https://twitter.com/${profile.twitter}" target="_blank" class="contact__button">
+                        Follow <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.facebook) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-facebook contact__card-icon'></i>
+                    <h3 class="contact__card-title">Facebook</h3>
+                    <span class="contact__card-data">${profile.facebook}</span>
+                    <a href="https://facebook.com/${profile.facebook}" target="_blank" class="contact__button">
+                        Follow <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.linkedin) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-linkedin contact__card-icon'></i>
+                    <h3 class="contact__card-title">LinkedIn</h3>
+                    <span class="contact__card-data">${profile.linkedin}</span>
+                    <a href="https://linkedin.com/in/${profile.linkedin}" target="_blank" class="contact__button">
+                        Connect <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.github) {
+            contactHTML += `
+                <div class="contact__card">
+                    <i class='bx bxl-github contact__card-icon'></i>
+                    <h3 class="contact__card-title">GitHub</h3>
+                    <span class="contact__card-data">@${profile.github}</span>
+                    <a href="https://github.com/${profile.github}" target="_blank" class="contact__button">
+                        Follow <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        if (profile.email) {
+            contactHTML += `
+                <div class="contact__card contact__card-email">
+                    <i class='bx bxs-envelope contact__card-icon'></i>
+                    <h3 class="contact__card-title">Email</h3>
+                    <span class="contact__card-data">${profile.email}</span>
+                    <a href="mailto:${profile.email}" class="contact__button">
+                        Email Me <i class='bx bx-right-arrow-alt'></i>
+                    </a>
+                </div>`;
+        }
+
+        contactContainer.innerHTML = contactHTML;
+    }
+
+    // Initialize like system
+    async function initializeLikeSystem() {
+        if (!currentProfileId) return;
+
+        const likeButton = document.getElementById('likeButton');
+        const likeCount = document.getElementById('likeCount');
+
+        const likesRef = doc(db, "profileLikes", currentProfileId);
+        let likesDoc = await getDoc(likesRef);
+
+        if (!likesDoc.exists()) {
+            await setDoc(likesRef, {
+                count: 0,
+                profileId: currentProfileId,
+                username: currentUsername
             });
-
-            socialContainer.innerHTML = socialHTML;
+            likesDoc = await getDoc(likesRef);
         }
 
-        // Populate contact cards (show all available social platforms)
-        function populateContactCards(profile) {
-            const contactContainer = document.getElementById('contact-cards');
-            let contactHTML = '';
+        const likesData = likesDoc.data();
+        likeCount.textContent = formatNumber(likesData.count || 0);
 
-            // Instagram
-            if (profile.instagram) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-instagram contact__card-icon'></i>
-                        <h3 class="contact__card-title">Instagram</h3>
-                        <span class="contact__card-data">@${profile.instagram}</span>
-                        <a href="https://www.instagram.com/${profile.instagram}" target="_blank" class="contact__button">
-                            Follow <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
+        const userLikeKey = `liked_${currentUsername}_${currentProfileId}`;
+        hasLiked = localStorage.getItem(userLikeKey) === 'true';
 
-            // Snapchat
-            if (profile.snapchat) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-snapchat contact__card-icon'></i>
-                        <h3 class="contact__card-title">Snapchat</h3>
-                        <span class="contact__card-data">@${profile.snapchat}</span>
-                        <a href="https://www.snapchat.com/add/${profile.snapchat}" target="_blank" class="contact__button">
-                            Add Me <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // YouTube
-            if (profile.youtubeChannel) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-youtube contact__card-icon'></i>
-                        <h3 class="contact__card-title">YouTube</h3>
-                        <span class="contact__card-data">${profile.youtubeChannel}</span>
-                        <a href="https://www.youtube.com/${profile.youtubeChannel}" target="_blank" class="contact__button">
-                            Subscribe <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // WhatsApp
-            if (profile.whatsapp) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-whatsapp contact__card-icon'></i>
-                        <h3 class="contact__card-title">WhatsApp</h3>
-                        <span class="contact__card-data">${profile.whatsapp}</span>
-                        <a href="https://wa.me/${profile.whatsapp}" target="_blank" class="contact__button">
-                            Message <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // Telegram
-            if (profile.telegram) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-telegram contact__card-icon'></i>
-                        <h3 class="contact__card-title">Telegram</h3>
-                        <span class="contact__card-data">@${profile.telegram}</span>
-                        <a href="https://t.me/${profile.telegram}" target="_blank" class="contact__button">
-                            Message <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // Twitter
-            if (profile.twitter) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-twitter contact__card-icon'></i>
-                        <h3 class="contact__card-title">Twitter</h3>
-                        <span class="contact__card-data">@${profile.twitter}</span>
-                        <a href="https://twitter.com/${profile.twitter}" target="_blank" class="contact__button">
-                            Follow <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // Facebook
-            if (profile.facebook) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-facebook contact__card-icon'></i>
-                        <h3 class="contact__card-title">Facebook</h3>
-                        <span class="contact__card-data">${profile.facebook}</span>
-                        <a href="https://facebook.com/${profile.facebook}" target="_blank" class="contact__button">
-                            Follow <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // LinkedIn
-            if (profile.linkedin) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-linkedin contact__card-icon'></i>
-                        <h3 class="contact__card-title">LinkedIn</h3>
-                        <span class="contact__card-data">${profile.linkedin}</span>
-                        <a href="https://linkedin.com/in/${profile.linkedin}" target="_blank" class="contact__button">
-                            Connect <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // GitHub
-            if (profile.github) {
-                contactHTML += `
-                    <div class="contact__card">
-                        <i class='bx bxl-github contact__card-icon'></i>
-                        <h3 class="contact__card-title">GitHub</h3>
-                        <span class="contact__card-data">@${profile.github}</span>
-                        <a href="https://github.com/${profile.github}" target="_blank" class="contact__button">
-                            Follow <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            // Email
-            if (profile.email) {
-                contactHTML += `
-                    <div class="contact__card contact__card-email">
-                        <i class='bx bxs-envelope contact__card-icon'></i>
-                        <h3 class="contact__card-title">Email</h3>
-                        <span class="contact__card-data">${profile.email}</span>
-                        <a href="mailto:${profile.email}" class="contact__button">
-                            Email Me <i class='bx bx-right-arrow-alt'></i>
-                        </a>
-                    </div>
-                `;
-            }
-
-            contactContainer.innerHTML = contactHTML;
+        if (hasLiked) {
+            likeButton.classList.add('button--liked');
         }
 
-        // Initialize like system
-        async function initializeLikeSystem() {
-            if (!currentProfileId) return;
+        likeButton.addEventListener('click', async () => {
+            if (hasLiked) return;
 
-            const likeButton = document.getElementById('likeButton');
-            const likeCount = document.getElementById('likeCount');
+            hasLiked = true;
+            localStorage.setItem(userLikeKey, 'true');
+            likeButton.classList.add('button--liked');
 
-            // Check if likes document exists, create if not
-            const likesRef = doc(db, "profileLikes", currentProfileId);
-            let likesDoc = await getDoc(likesRef);
-
-            if (!likesDoc.exists()) {
-                await setDoc(likesRef, {
-                    count: 0,
-                    profileId: currentProfileId,
-                    username: currentUsername
+            try {
+                await updateDoc(likesRef, {
+                    count: increment(1)
                 });
-                likesDoc = await getDoc(likesRef);
-            }
-
-            // Update like count display
-            const likesData = likesDoc.data();
-            likeCount.textContent = formatNumber(likesData.count || 0);
-
-            // Check if user has already liked (using localStorage since we can't use browser storage APIs)
-            const userLikeKey = `liked_${currentUsername}_${currentProfileId}`;
-            hasLiked = localStorage.getItem(userLikeKey) === 'true';
-
-            if (hasLiked) {
-                likeButton.classList.add('button--liked');
-            }
-
-            // Add click event listener
-            likeButton.addEventListener('click', async () => {
-                if (hasLiked) {
-                    // Already liked, show message
-                    likeButton.classList.add('shake');
-                    setTimeout(() => likeButton.classList.remove('shake'), 500);
-
-                    // Create floating message
-                    const message = document.createElement('div');
-                    message.classList.add('floating-heart');
-                    message.innerHTML = '';
-                    message.style.position = 'absolute';
-                    message.style.left = likeButton.offsetLeft + 'px';
-                    message.style.top = likeButton.offsetTop - 20 + 'px';
-                    document.body.appendChild(message);
-
-                    setTimeout(() => message.remove(), 1500);
-                    return;
+                const updatedDoc = await getDoc(likesRef);
+                if (updatedDoc.exists()) {
+                    likeCount.textContent = formatNumber(updatedDoc.data().count || 0);
                 }
+            } catch (error) {
+                console.error("Error updating likes:", error);
+            }
+        });
+    }
 
-                // Mark as liked
-                hasLiked = true;
-                localStorage.setItem(userLikeKey, 'true');
-                likeButton.classList.add('button--liked');
+    // Initialize scroll reveal
+    function initializeScrollReveal() {
+        const sr = ScrollReveal({
+            origin: 'top',
+            distance: '60px',
+            duration: 2500,
+            delay: 400,
+        });
 
-                // Create floating heart animation
-                const heart = document.createElement('div');
-                heart.classList.add('floating-heart');
-                heart.innerHTML = '+1 ❤️‍🔥';
-                heart.style.position = 'absolute';
-                heart.style.left = likeButton.offsetLeft + likeButton.offsetWidth/2 + 'px';
-                heart.style.top = likeButton.offsetTop + 'px';
-                document.body.appendChild(heart);
+        sr.reveal('.home__data');
+        sr.reveal('.home__social, .home__scroll', {delay: 600, origin: 'bottom'});
+        sr.reveal('.section__subtitle, .section__title', {origin: 'left'});
+        sr.reveal('.about__img', {origin: 'right'});
+        sr.reveal('.about__description', {delay: 600});
+        sr.reveal('.contact__content', {interval: 100});
+    }
 
-                setTimeout(() => heart.remove(), 1500);
+    // Theme toggle
+    function initializeTheme() {
+        const themeButton = document.getElementById('theme-button');
 
-                // Create ripple effect
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple');
-                ripple.style.left = likeButton.offsetWidth/2 + 'px';
-                ripple.style.top = likeButton.offsetHeight/2 + 'px';
-                likeButton.appendChild(ripple);
+        document.body.classList.add('dark-theme');
+        themeButton.classList.add('bx-sun');
 
-                setTimeout(() => ripple.remove(), 600);
-
-                // Update Firebase
-                try {
-                    await updateDoc(likesRef, {
-                        count: increment(1)
-                    });
-
-                    // Get updated count
-                    const updatedDoc = await getDoc(likesRef);
-                    if (updatedDoc.exists()) {
-                        likeCount.textContent = formatNumber(updatedDoc.data().count || 0);
-                    }
-                } catch (error) {
-                    console.error("Error updating likes:", error);
-                }
-            });
+        const savedTheme = localStorage.getItem('selected-theme');
+        if (savedTheme === 'light') {
+            document.body.classList.remove('dark-theme');
+            document.body.classList.add('light-theme');
+            themeButton.classList.remove('bx-sun');
+            themeButton.classList.add('bx-moon');
         }
 
-        // Initialize scroll reveal animations
-        function initializeScrollReveal() {
-            const sr = ScrollReveal({
-                origin: 'top',
-                distance: '60px',
-                duration: 2500,
-                delay: 400,
-            });
-
-            sr.reveal('.home__data');
-            sr.reveal('.home__social, .home__scroll', {delay: 600, origin: 'bottom'});
-            sr.reveal('.section__subtitle, .section__title', {origin: 'left'});
-            sr.reveal('.about__img', {origin: 'right'});
-            sr.reveal('.about__info', {delay: 500});
-            sr.reveal('.about__description, .about__button-contact', {delay: 600});
-            sr.reveal('.contact__content', {interval: 100});
-        }
-
-        // Theme toggle functionality
-        function initializeTheme() {
-            const themeButton = document.getElementById('theme-button');
-
-            // Set dark theme as default
-            document.body.classList.add('dark-theme');
-            themeButton.classList.add('bx-sun');
-
-            // Check for saved theme preference
-            const savedTheme = localStorage.getItem('selected-theme');
-            if (savedTheme === 'light') {
+        themeButton.addEventListener('click', () => {
+            if (document.body.classList.contains('dark-theme')) {
                 document.body.classList.remove('dark-theme');
                 document.body.classList.add('light-theme');
                 themeButton.classList.remove('bx-sun');
                 themeButton.classList.add('bx-moon');
+                localStorage.setItem('selected-theme', 'light');
+            } else {
+                document.body.classList.remove('light-theme');
+                document.body.classList.add('dark-theme');
+                themeButton.classList.remove('bx-moon');
+                themeButton.classList.add('bx-sun');
+                localStorage.setItem('selected-theme', 'dark');
             }
-
-            // Theme toggle functionality
-            themeButton.addEventListener('click', () => {
-                if (document.body.classList.contains('dark-theme')) {
-                    document.body.classList.remove('dark-theme');
-                    document.body.classList.add('light-theme');
-                    themeButton.classList.remove('bx-sun');
-                    themeButton.classList.add('bx-moon');
-                    localStorage.setItem('selected-theme', 'light');
-                } else {
-                    document.body.classList.remove('light-theme');
-                    document.body.classList.add('dark-theme');
-                    themeButton.classList.remove('bx-moon');
-                    themeButton.classList.add('bx-sun');
-                    localStorage.setItem('selected-theme', 'dark');
-                }
-            });
-        }
-
-        // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeTheme();
-            // Start loading profile immediately
-            loadProfile();
         });
+    }
 
-    </script>
-
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeTheme();
+        loadProfile();
+    });
+</script>
+   
 
 
 
