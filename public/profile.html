@@ -163,35 +163,28 @@ button {
 #profile-name {
   display: inline-block;       /* keep original placement */
   transform-origin: center;    /* pivot from center */
-  animation: rubberBand 1s ease-in-out infinite; /* loop smoothly */
+  animation: rubberBandLoop 3.5s ease-in-out infinite; /* repeat every 3.5s */
   font-size: inherit;          /* keep original font size */
   font-weight: inherit;        /* keep original weight */
 }
 
-@keyframes rubberBand {
-  0% {
-    transform: scale(1);
+@keyframes rubberBandLoop {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
   }
-  30% {
-    transform: scaleX(1.2) scaleY(0.8);
+  20% {
+    transform: translateX(-2px);
   }
   40% {
-    transform: scaleX(0.8) scaleY(1.2);
+    transform: translateX(2px);
   }
-  50% {
-    transform: scaleX(1.1) scaleY(0.9);
+  60% {
+    transform: translateX(-1px);
   }
-  65% {
-    transform: scaleX(0.95) scaleY(1.05);
-  }
-  75% {
-    transform: scaleX(1.05) scaleY(0.95);
-  }
-  100% {
-    transform: scale(1);
+  80% {
+    transform: translateX(1px);
   }
 }
-
 
 
 
