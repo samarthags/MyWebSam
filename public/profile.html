@@ -167,21 +167,27 @@ button {
   font-size: inherit;      /* keep current font size */
   font-weight: inherit;    /* keep current font weight */
   opacity: 0;
-  transform: translateY(10px);
-  animation: fadeInUp 1s ease forwards;
+  animation: fadeLoop 4s ease-in-out infinite;
 }
 
-@keyframes fadeInUp {
+@keyframes fadeLoop {
   0% {
     opacity: 0;
     transform: translateY(10px);
   }
-  100% {
+  10% {
     opacity: 1;
     transform: translateY(0);
   }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }
-
 
 
 
