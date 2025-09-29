@@ -1624,19 +1624,20 @@ function populateProfile(profile) {
 
     // Update About section
     const aboutDesc = document.querySelector('.about__description');
-    if (aboutDesc) {
-        const formattedBirthday = profile.birthday
-            ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-            : 'Not specified';
-        aboutDesc.innerHTML = `
-            Hi, I'm <strong>${profile.name || 'Name'}</strong>.  
-            I was born on <strong>${formattedBirthday}</strong> and I’m from <strong>${profile.location || 'Not specified'}</strong>.  
-            I enjoy learning new things, working on creative projects, and always looking for ways to grow.
-        `;
-    }
+if (aboutDesc) {
+    const formattedBirthday = profile.birthday
+        ? new Date(profile.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+        : 'Not specified';
+    
+    aboutDesc.innerHTML = `
+        <strong>${profile.name || 'Name'}</strong> | Born <strong>${formattedBirthday}</strong> | From <strong>${profile.location || 'Not specified'}</strong><br>
+        Learning | Creating | Connecting
+    `;
+}
 
-    populateSocialLinks(profile);
-    populateContactCards(profile);
+// After About section update, populate social links and contact cards
+populateSocialLinks(profile);
+populateContactCards(profile);
 }
 
 // Populate social links (home section)
