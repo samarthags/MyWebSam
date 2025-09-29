@@ -1810,14 +1810,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 document.getElementById("share-button").addEventListener("click", async () => {
-  const name = "theirname"; // dynamically replace this if needed
-  const shareURL = `https://mywebsam.site/${name}`;
+  const shareURL = window.location.href; // actual current page URL
 
   if (navigator.share) {
     try {
       await navigator.share({
         title: "Visit my portfolio website",
-        text: "Check out my portfolio 🚀",
+        text: shareURL,
         url: shareURL
       });
     } catch (err) {
@@ -1825,7 +1824,7 @@ document.getElementById("share-button").addEventListener("click", async () => {
     }
   } else {
     navigator.clipboard.writeText(shareURL);
-    alert("Sharing not supported. Link copied!");
+    alert("Sharing not supported. Link copied: " + shareURL);
   }
 });
 </script>
