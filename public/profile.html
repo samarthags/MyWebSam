@@ -1813,110 +1813,119 @@ document.addEventListener('DOMContentLoaded', () => {
   const shareButton = document.getElementById('share-button');
   if (!shareButton) return;
 
-  shareButton.addEventListener('click', async () => {
-    try {
-      const profileName = "{{NAME}}" || "My Site";
-      const profileImageSrc = document.getElementById('profile-image')?.src || 'https://via.placeholder.com/400';
-      const profileURL = window.location.href;
+  function canvasToBlob(canvas){
+    return new Promise(res => canvas.toBlob(b => res(b), "image/png"));
+  }
 
-      // Create modal
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `
-        position:fixed;inset:0;background:rgba(0,0,0,.65);
-        display:flex;align-items:center;justify-content:center;z-index:9999;
-      `;
-      overlay.innerHTML = `
-        <div style="background:#111;color:#fff;border-radius:16px;padding:18px;width:92%;max-width:420px;text-align:center;position:relative;">
-          <div id="close-modal" style="position:absolute;right:12px;top:10px;font-size:22px;cursor:pointer;">&times;</div>
-          <h4>Preview</h4>
-          <canvas id="profileCanvas" style="width:100%;border-radius:12px;background:#000;margin:10px auto;"></canvas>
-          <button id="download-image" style="margin:8px;padding:10px 14px;border-radius:8px;">Download</button>
-          <button id="share-image" style="margin:8px;padding:10px 14px;border-radius:8px;background:#1db954;color:#fff;">Share</button>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-      document.getElementById('close-modal').onclick = () => overlay.remove();
-      overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+  function downloadBlob(blob, filename){
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
 
-      // Load QR library
-      if (!window.QRCode) {
-        await new Promise(res=>{
-          const s=document.createElement('script');
-          s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-          s.onload=res;
-          document.head.appendChild(s);
-        });
-      }
-
-      // Generate QR
-      const qrDiv = document.createElement('div'); qrDiv.style.display='none';
-      document.body.appendChild(qrDiv);
-      new QRCode(qrDiv, { text: profileURL, width:200, height:200 });
-      const qrImg = qrDiv.querySelector('img');
-
-      // Canvas setup
-      const canvas = document.getElementById('profileCanvas');
-      canvas.width = 600; canvas.height = 1000;
-      const ctx = canvas.getContext('2d');
-
-      // Gradient bg
-      const g = ctx.createLinearGradient(0,0,0,canvas.height);
-      g.addColorStop(0,'#1db954'); g.addColorStop(1,'#191414');
-      ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      // Top CTA
-      ctx.fillStyle='#fff';
-      ctx.font='28px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('✨ Visit My Site ✨', canvas.width/2, 50);
-
-      // Profile image
-      const img = new Image(); img.crossOrigin="Anonymous"; img.src=profileImageSrc;
-      img.onload=()=>{
-        const size=220, x=canvas.width/2-size/2, y=100;
-        ctx.save();
-        ctx.beginPath(); ctx.arc(canvas.width/2,y+size/2,size/2,0,Math.PI*2); ctx.closePath(); ctx.clip();
-        ctx.drawImage(img,x,y,size,size);
-        ctx.restore();
-
-        // Name + text
-        ctx.fillStyle='#fff'; ctx.font='bold 32px sans-serif';
-        ctx.fillText(profileName, canvas.width/2, y+size+60);
-        ctx.font='22px sans-serif';
-        ctx.fillText('Tap link or scan QR to visit 🚀', canvas.width/2, y+size+100);
-
-        // QR
-        if(qrImg){
-          const q=new Image(); q.crossOrigin="Anonymous"; q.src=qrImg.src;
-          q.onload=()=> ctx.drawImage(q, canvas.width/2-100, canvas.height-250, 200,200);
+  function waitForQRCodeImage(qrDiv, timeout=3000){
+    return new Promise(resolve => {
+      let waited = 0;
+      const t = setInterval(() => {
+        const img = qrDiv.querySelector("img");
+        if (img && img.complete) {
+          const q = new Image();
+          q.crossOrigin = "Anonymous";
+          q.onload = () => { clearInterval(t); resolve(q); };
+          q.onerror = () => { clearInterval(t); resolve(null); };
+          q.src = img.src;
         }
-      };
+        waited += 100;
+        if (waited >= timeout) { clearInterval(t); resolve(null); }
+      },100);
+    });
+  }
 
-      // Download
-      document.getElementById('download-image').onclick=()=>{
-        const link=document.createElement('a');
-        link.href=canvas.toDataURL('image/png');
-        link.download=profileName.replace(/\s+/g,'_')+'.png';
-        link.click();
-      };
+  shareButton.addEventListener('click', async () => {
+    const profileURL = window.location.href;
 
-      // Share
-      document.getElementById('share-image').onclick=()=>{
-        canvas.toBlob(async blob=>{
-          const file=new File([blob], profileName+'.png',{type:'image/png'});
-          if(navigator.canShare && navigator.canShare({files:[file]})){
-            await navigator.share({files:[file], title:profileName, text:'Check out my site!'})
-              .catch(err=>alert('Share failed: '+err));
-          } else if(navigator.share){
-            await navigator.share({title:profileName, text:'Visit my site', url:profileURL})
-              .catch(err=>alert('Share failed: '+err));
-          } else {
-            alert('Sharing not supported. Download instead.');
-          }
-        });
-      };
+    // Load QR library
+    await new Promise((res, rej) => {
+      if (window.QRCode) return res();
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+      s.onload = res;
+      s.onerror = rej;
+      document.head.appendChild(s);
+    });
 
-    } catch(e){ console.error(e); alert('Error: '+e.message); }
+    // Generate QR (hidden)
+    const qrDiv = document.createElement("div");
+    qrDiv.style.display = "none";
+    document.body.appendChild(qrDiv);
+    new QRCode(qrDiv, { text: profileURL, width: 600, height: 600 });
+    const qrImg = await waitForQRCodeImage(qrDiv);
+
+    // Modal
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;";
+    overlay.innerHTML = `
+      <div style="background:#000;border-radius:20px;padding:12px;text-align:center;position:relative;">
+        <div id="close-modal" style="position:absolute;right:10px;top:6px;font-size:22px;color:#fff;cursor:pointer;">&times;</div>
+        <canvas id="storyCanvas" style="width:300px;height:500px;border-radius:16px;"></canvas>
+        <div style="margin-top:12px;">
+          <button id="download-image" style="margin:4px;padding:8px 12px;border:none;border-radius:8px;background:#fff;color:#000;">Download</button>
+          <button id="share-image" style="margin:4px;padding:8px 12px;border:none;border-radius:8px;background:#1db954;color:#fff;">Share</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById("close-modal").onclick = () => overlay.remove();
+
+    // Draw Story Canvas
+    const canvas = document.getElementById("storyCanvas");
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext("2d");
+
+    // Gradient BG
+    const g = ctx.createLinearGradient(0,0,0,canvas.height);
+    g.addColorStop(0,"#1db954");
+    g.addColorStop(1,"#191414");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Draw QR in center
+    if(qrImg){
+      const qrSize = 600;
+      ctx.drawImage(qrImg, canvas.width/2 - qrSize/2, canvas.height/2 - qrSize/2, qrSize, qrSize);
+    }
+
+    // Download
+    document.getElementById("download-image").onclick = async () => {
+      const blob = await canvasToBlob(canvas);
+      downloadBlob(blob, "story.png");
+    };
+
+    // Share
+    document.getElementById("share-image").onclick = async () => {
+      try {
+        const blob = await canvasToBlob(canvas);
+        const file = new File([blob], "story.png",{type:"image/png"});
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          await navigator.share({files:[file],title:"Visit Website"});
+        } else {
+          downloadBlob(blob, "story.png");
+          alert("Sharing not supported. Image downloaded.");
+        }
+      } catch(e){
+        console.error(e);
+        alert("Share failed. Image downloaded.");
+      }
+    };
+
+    qrDiv.remove();
   });
 })();
 </script>
+
 </body>
