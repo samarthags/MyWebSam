@@ -5,10 +5,6 @@
       "destination": "/api/sitemap"
     },
     {
-      "source": "/create",
-      "destination": "/create"
-    },
-    {
       "source": "/:username",
       "destination": "/api/profile?username=:username"
     }
