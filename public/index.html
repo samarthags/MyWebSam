@@ -7,9 +7,7 @@
   <title>Mywebsam - Create Your Own Profile</title>
 
   <!-- SEO Meta Tags -->
-
-
-<meta name="google-adsense-account" content="ca-pub-3219043162240445">
+  <meta name="google-adsense-account" content="ca-pub-3219043162240445">
   <meta name="description" content="Create your unified digital profile with all social links, bio, and professional information. Be discoverable on Google and ChatGPT with one centralized profile." />
   <meta name="keywords" content="Profile Creator, Social Profile, Digital Identity, Online Presence, Google Discoverability, ChatGPT Visibility, Unified Profile" />
   <meta name="author" content="Samartha GS" />
@@ -32,7 +30,7 @@
   <link rel="icon" href="https://i.ibb.co/sKbrkyn/Yellow-and-Grey-Pastel-Grunge-Designer-Brand-Logo-20241009-185202-0000.png" type="image/png">
 
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -62,8 +60,6 @@
     "screenshot": "https://i.ibb.co/sKbrkyn/Yellow-and-Grey-Pastel-Grunge-Designer-Brand-Logo-20241009-185202-0000.png"
   }
   </script>
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 :root {
@@ -82,7 +78,7 @@
 }
 
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-body { background: var(--body-color); color: var(--text-color); overflow-x:hidden; line-height:1.6; }
+body { background: var(--body-color); color: var(--text-color); overflow-x:hidden; line-height:1.6; scroll-behavior: smooth; }
 
 /* Hero */
 .hero { padding:6rem 1.5rem 4rem; text-align:center; }
@@ -143,6 +139,26 @@ body { background: var(--body-color); color: var(--text-color); overflow-x:hidde
 }
 .cta-button:hover { transform:translateY(-3px) scale(1.05); box-shadow:0 8px 20px rgba(0,0,0,0.5); }
 
+/* Scroll Down Button */
+.scroll-down {
+  margin-top: 2.5rem;
+  animation: bounce 2s infinite;
+}
+.scroll-down a {
+  color: var(--first-color);
+  font-size: 2rem;
+  text-decoration: none;
+  transition: 0.3s;
+}
+.scroll-down a:hover {
+  color: var(--first-color-alt);
+}
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(8px); }
+  60% { transform: translateY(4px); }
+}
+
 /* Features */
 .features-section { padding:5rem 1.5rem; text-align:center; }
 .features-title { font-size:2rem; font-weight:900; margin-bottom:3rem; color: var(--first-color); }
@@ -196,18 +212,23 @@ footer {
 <!-- Hero -->
 <section class="hero">
   <h1>MyWebSam</h1>
-  <p>This is a project by <b>Samartha GS</b>. Create your personal profile page instantly. Add picture, name, bio, DOB, location, and social links. Share your profile anywhere without any watermark — only your content appears!</p>
+  <p>This is a project by <b>Samartha Gs</b>. Create your personal profile page instantly. Add picture, name, bio, DOB, location, and social links. Share your profile anywhere without any watermark — only your content appears!</p>
   <div class="cta-section">
     <div class="url-display">mywebsam.com/yourname</div>
     <small>Claim your username now!</small>
     <a href="https://samarthags.in/createyourprofile/create.html">
-  <button class="cta-button"><i class="fas fa-magic"></i> Create Profile</button>
+      <button class="cta-button"><i class="fas fa-magic"></i> Create Profile</button>
     </a>
+  </div>
+
+  <!-- Scroll Down Button -->
+  <div class="scroll-down">
+    <a href="#features"><i class="fas fa-chevron-down"></i></a>
   </div>
 </section>
 
 <!-- Features -->
-<section class="features-section">
+<section id="features" class="features-section">
   <h2 class="features-title">Features & Ideas</h2>
   <div class="features-grid">
     <div class="feature-card">
