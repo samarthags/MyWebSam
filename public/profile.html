@@ -1861,22 +1861,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 document.getElementById("share-button").addEventListener("click", async () => {
-  const shareURL = window.location.href;   // actual current page URL
-  const shareTitle = document.title;       // auto-detect page title
+  // Build clean URL (full https)
+  const domain = window.location.hostname; // mywebsam.site
+  const path = window.location.pathname;   // /username
+  const cleanURL = "https://" + domain + path; // https://mywebsam.site/username
+  const shareTitle = document.title;
 
   if (navigator.share) {
     try {
       await navigator.share({
         title: shareTitle,
-        text: "Check out my portfolio 🚀",
-        url: shareURL
+        text: "Check out my portfolio 🚀 " + cleanURL,
+        url: cleanURL
       });
     } catch (err) {
-      console.error("Share failed:", err.message);
+      await navigator.clipboard.writeText(cleanURL);
+      alert("This app does not provide a share function, so the link was copied: " + cleanURL);
     }
   } else {
-    navigator.clipboard.writeText(shareURL);
-    alert("Sharing not supported. Link copied: " + shareURL);
+    await navigator.clipboard.writeText(cleanURL);
+    alert("This app does not provide a share function, so the link was copied: " + cleanURL);
   }
 });
 </script>
