@@ -1861,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 document.getElementById("share-button").addEventListener("click", async () => {
-  // Build clean URL (full https)
+  // Build clean full URL
   const domain = window.location.hostname; // mywebsam.site
   const path = window.location.pathname;   // /username
   const cleanURL = "https://" + domain + path; // https://mywebsam.site/username
@@ -1871,16 +1871,18 @@ document.getElementById("share-button").addEventListener("click", async () => {
     try {
       await navigator.share({
         title: shareTitle,
-        text: "Check out my portfolio 🚀 " + cleanURL,
+        text: "Check out my portfolio 🚀", // Removed URL from text to avoid doubling
         url: cleanURL
       });
     } catch (err) {
       await navigator.clipboard.writeText(cleanURL);
       alert("This app does not provide a share function, so the link was copied: " + cleanURL);
+      console.log("⚠️ Share failed, link copied instead: " + cleanURL);
     }
   } else {
     await navigator.clipboard.writeText(cleanURL);
     alert("This app does not provide a share function, so the link was copied: " + cleanURL);
+    console.log("ℹ️ Share API not supported, link copied: " + cleanURL);
   }
 });
 </script>
