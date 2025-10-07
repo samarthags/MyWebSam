@@ -1549,7 +1549,7 @@ body.light-theme {
 <!--=============== FESTIVAL SECTION ===============-->
 <section class="festival section" id="festival">
     <span class="section__subtitle">Festival Time</span>
-    <h2 class="section__title">Celebrate! 🎉</h2>
+    <h2 class="section__title">Wishes</h2>
 
     <div class="festival__container container">
         <div id="festival-card">
@@ -1987,7 +1987,7 @@ async function loadFestival() {
 
         if (data.items && data.items.length > 0) {
             const event = data.items[0];
-            festivalCard.innerHTML = `🎉 ${event.summary} is here! Wishing you a happy festival! 🌸`;
+            festivalCard.innerHTML = `${event.summary} is here! Wishing you a happy festival! 🥳`;
         } else {
             showNextFestival();
         }
