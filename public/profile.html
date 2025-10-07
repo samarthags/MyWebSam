@@ -1523,21 +1523,22 @@ body.light-theme {
   </div>
 </section>
 
-        <!--=============== SPOTIFY DEMO ===============-->
-        <section class="spotify section" id="spotify">
-            <span class="section__subtitle">Now Trending</span>
-            <h2 class="section__title">India</h2>
+      
+<!--=============== FESTIVAL SECTION ===============-->
+<section class="festival section" id="festival">
+    <span class="section__subtitle">Festival Time</span>
+    <h2 class="section__title">Celebrate! 🎉</h2>
 
-            <div class="spotify__container container">
-                <div style="left: 0; width: 100%; height: 352px; position: relative;">
-                    <iframe src="https://open.spotify.com/embed/track/3gjTErwpHM5PkRbWMhmNrV?utm_source=oembed" 
-                        style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" 
-                        allowfullscreen 
-                        allow="clipboard-write *; encrypted-media *; fullscreen *; picture-in-picture *">
-                    </iframe>
-                </div>
-            </div>
-        </section>
+    <div class="festival__container container">
+        <div id="festival-card">
+            <p>Loading festival info...</p>
+        </div>
+    </div>
+</section>
+
+
+
+
 
         <section class="contact section" id="contact">
             <span class="section__subtitle">Get in touch</span>
@@ -1940,6 +1941,66 @@ function initBioTyping(profile) {
 // After you populate the profile data from Firebase:
 populateProfile(profile);
 initBioTyping(profile);
+</script>
+
+
+
+
+
+<script>
+const festivalCard = document.getElementById("festival-card");
+const calendarId = 'en.indian#holiday@group.v.calendar.google.com';
+const apiKey = 'AIzaSyAj7kNyWxC2a4mXK2zBV32IPJeNuOH-o-E';
+
+async function loadFestival() {
+    const today = new Date();
+    const timeMin = new Date(today.setHours(0,0,0,0)).toISOString();
+    const timeMax = new Date(today.setHours(23,59,59,999)).toISOString();
+
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.items && data.items.length > 0) {
+            const event = data.items[0];
+            festivalCard.innerHTML = `🎉 ${event.summary} is here! Wishing you a happy festival! 🌸`;
+        } else {
+            showNextFestival();
+        }
+    } catch(err) {
+        console.error(err);
+        festivalCard.innerHTML = "Could not load festival info 😢";
+    }
+}
+
+async function showNextFestival() {
+    const now = new Date();
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 2);
+
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}&timeMin=${now.toISOString()}&timeMax=${nextMonth.toISOString()}&singleEvents=true&orderBy=startTime`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.items && data.items.length > 0) {
+            const event = data.items[0];
+            const date = new Date(event.start.date);
+            festivalCard.innerHTML = `Next festival: ${event.summary} on ${date.toLocaleDateString('en-IN')}. Get ready to celebrate! 🎉`;
+        } else {
+            festivalCard.innerHTML = "No upcoming festivals found 🌸";
+        }
+    } catch(err) {
+        console.error(err);
+        festivalCard.innerHTML = "Error loading upcoming festivals 😢";
+    }
+}
+
+// Load when page is ready
+document.addEventListener('DOMContentLoaded', loadFestival);
 </script>
 
 
