@@ -556,19 +556,23 @@ body {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-// Firebase configuration using environment variables
+// Firebase configuration using Vercel env variables
 const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.FIREBASE_APP_ID
+    apiKey: import.meta.env.FIREBASE_API_KEY,
+    authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.FIREBASE_APP_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// Cloudinary environment variables
+const CLOUDINARY_CLOUD_NAME = import.meta.env.CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.CLOUDINARY_UPLOAD_PRESET;
 
 // DOM elements
 const nameInput = document.getElementById("name");
@@ -604,24 +608,19 @@ profileImageInput.addEventListener("change", (e) => {
     }
 });
 
-// Upload image to Cloudinary using environment variables
+// Upload image to Cloudinary
 async function uploadImage(file) {
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
-
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", uploadPreset);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
     try {
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
             method: "POST",
             body: formData
         });
 
-        if (!response.ok) {
-            throw new Error('Image upload failed');
-        }
+        if (!response.ok) throw new Error('Image upload failed');
 
         const data = await response.json();
         return data.secure_url;
@@ -641,8 +640,7 @@ async function generateUniqueUsername(name) {
     let finalUsername = username;
 
     try {
-        const q = query(collection(db, "profiles"), where("username", "==", finalUsername));
-        let querySnapshot = await getDocs(q);
+        let querySnapshot = await getDocs(query(collection(db, "profiles"), where("username", "==", finalUsername)));
 
         while (!querySnapshot.empty) {
             finalUsername = username + count;
@@ -700,7 +698,6 @@ async function createProfile() {
         const username = await generateUniqueUsername(name);
         const imageUrl = await uploadImage(imageFile);
 
-        // Save to Firestore
         await addDoc(collection(db, "profiles"), {
             name, username, location, birthday, imageUrl, bio,
             instagram, snapchat, whatsapp, facebook, twitter, linkedin, youtube, email, telegram, github, josh,
@@ -743,7 +740,7 @@ function resetForm() {
     fileInputContainer.style.borderStyle = "dashed";
 }
 
-// Show toast notification
+// Toast
 function showToast(message) {
     toastNotification.textContent = message;
     toastNotification.style.display = "block";
